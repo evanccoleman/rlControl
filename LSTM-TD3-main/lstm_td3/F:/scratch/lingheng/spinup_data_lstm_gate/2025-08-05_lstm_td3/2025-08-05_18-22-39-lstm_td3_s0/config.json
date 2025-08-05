@@ -1,0 +1,82 @@
+{
+    "act_noise":	0.1,
+    "actor_cur_feature_hid_sizes":	[
+        128,
+        128
+    ],
+    "actor_hist_with_past_act":	true,
+    "actor_mem_after_lstm_hid_size":	[],
+    "actor_mem_lstm_hid_sizes":	[
+        128
+    ],
+    "actor_mem_pre_lstm_hid_sizes":	[
+        128
+    ],
+    "actor_post_comb_hid_sizes":	[
+        128
+    ],
+    "batch_size":	100,
+    "critic_cur_feature_hid_sizes":	[
+        128,
+        128
+    ],
+    "critic_hist_with_past_act":	false,
+    "critic_mem_after_lstm_hid_size":	[],
+    "critic_mem_lstm_hid_sizes":	[
+        128
+    ],
+    "critic_mem_pre_lstm_hid_sizes":	[
+        128
+    ],
+    "critic_post_comb_hid_sizes":	[
+        128
+    ],
+    "env_name":	"HalfCheetahBulletEnv-v0",
+    "epochs":	400,
+    "exp_name":	"lstm_td3",
+    "flicker_prob":	0.2,
+    "gamma":	0.99,
+    "logger":	{
+        "<utils.logx.EpochLogger object at 0x10cdf69c0>":	{
+            "epoch_dict":	{},
+            "exp_name":	"lstm_td3",
+            "first_row":	true,
+            "log_current_row":	{},
+            "log_headers":	[],
+            "output_dir":	"F:/scratch/lingheng/spinup_data_lstm_gate/2025-08-05_lstm_td3/2025-08-05_18-22-39-lstm_td3_s0",
+            "output_file":	{
+                "<_io.TextIOWrapper name='F:/scratch/lingheng/spinup_data_lstm_gate/2025-08-05_lstm_td3/2025-08-05_18-22-39-lstm_td3_s0/progress.txt' mode='w' encoding='UTF-8'>":	{
+                    "mode":	"w"
+                }
+            },
+            "output_file_path":	"F:/scratch/lingheng/spinup_data_lstm_gate/2025-08-05_lstm_td3/2025-08-05_18-22-39-lstm_td3_s0/progress.txt"
+        }
+    },
+    "logger_kwargs":	{
+        "exp_name":	"lstm_td3",
+        "output_dir":	"F:/scratch/lingheng/spinup_data_lstm_gate/2025-08-05_lstm_td3/2025-08-05_18-22-39-lstm_td3_s0"
+    },
+    "max_ep_len":	1000,
+    "max_hist_len":	5,
+    "noise_clip":	0.5,
+    "num_test_episodes":	10,
+    "partially_observable":	false,
+    "pi_lr":	0.001,
+    "policy_delay":	2,
+    "polyak":	0.995,
+    "pomdp_type":	"remove_velocity",
+    "q_lr":	0.001,
+    "random_noise_sigma":	0.1,
+    "random_sensor_missing_prob":	0.1,
+    "replay_size":	1000000,
+    "resume_exp_dir":	null,
+    "save_freq":	1,
+    "seed":	0,
+    "start_steps":	10000,
+    "steps_per_epoch":	4000,
+    "target_noise":	0.2,
+    "update_after":	1000,
+    "update_every":	50,
+    "use_double_critic":	true,
+    "use_target_policy_smooth":	true
+}

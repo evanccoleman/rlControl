@@ -1,8 +1,8 @@
 from copy import copy
-import gym
+import gymnasium as gym
 import numpy as np
-from gym.wrappers.time_limit import TimeLimit
-from lstm_td3.env_wrapper.pomdp_wrapper import POMDPWrapper
+from gymnasium.wrappers import TimeLimit
+from env_wrapper.pomdp_wrapper import POMDPWrapper
 
 
 class TransparentWrapper(gym.Wrapper):

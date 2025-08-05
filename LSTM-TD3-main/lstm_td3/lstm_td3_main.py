@@ -1,15 +1,15 @@
 from copy import deepcopy
 import numpy as np
-import pybullet_envs    # To register tasks in PyBullet
-import gym
+# import pybullet_envs    # To register tasks in PyBullet
+import gymnasium as gym
 import time
 import torch
 import torch.nn as nn
 from torch.optim import Adam
-from lstm_td3.utils.logx import EpochLogger, setup_logger_kwargs, colorize
+from utils.logx import EpochLogger, setup_logger_kwargs, colorize
 import itertools
-from lstm_td3.env_wrapper.pomdp_wrapper import POMDPWrapper
-from lstm_td3.env_wrapper.env import make_bullet_task
+from env_wrapper.pomdp_wrapper import POMDPWrapper
+from env_wrapper.env import make_bullet_task
 import os
 import os.path as osp
 import json
@@ -491,8 +491,8 @@ def lstm_td3(resume_exp_dir=None,
         # env, test_env = gym.make(env_name), gym.make(env_name)
         env = make_bullet_task(env_name, dp_type='MDP')
         test_env = make_bullet_task(env_name, dp_type='MDP')
-        env.seed(seed)
-        test_env.seed(seed)
+        env.reset(seed=seed)
+        test_env.reset(seed=seed)
 
     obs_dim = env.observation_space.shape[0]
     act_dim = env.action_space.shape[0]
@@ -867,7 +867,7 @@ if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument('--resume_exp_dir', type=str, default=None, help="The directory of the resuming experiment.")
-    parser.add_argument('--env_name', type=str, default='HalfCheetahBulletEnv-v0')
+    parser.add_argument('--env_name', type=str, default='HalfCheetah-v5')
     parser.add_argument('--gamma', type=float, default=0.99)
     parser.add_argument('--seed', '-s', type=int, default=0)
     parser.add_argument('--epochs', type=int, default=400)
