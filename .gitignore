@@ -1,0 +1,2 @@
+# ignore open versions of files vim actively looks at
+*.swp
