@@ -1,0 +1,19 @@
+Environment packages needed:
+- numpy
+- gymnasium
+- "gymnasium[mujoco]"
+- stable-baselines3
+- "stable-baselines3[extra]"
+- sb3-contrib
+
+Environments implemented:
+- Ant-v5
+- HalfCheetah-v5
+- Hopper-v5
+
+Agents implemented so far:
+- PPO
+- DDPG
+- TD3
+- SAC
+- RPPO 
