@@ -1,4 +1,4 @@
-# walkers.py
+# copy_walkers.py
 
 # good ol' numpy
 import numpy as np
@@ -24,15 +24,15 @@ def readCommand(argv) -> list:
     the environment and the agent.
     """
 
-    # instructions for how to run walkers.py found using -h
+    # instructions for how to run copy_walkers.py found using -h
     usage_str = """
-    USAGE:      python walkers.py <options>
-    EXAMPLES:   (1) python walkers.py
+    USAGE:      python copy_walkers.py <options>
+    EXAMPLES:   (1) python copy_walkers.py
                     - starts walkers with default settings
-                (2) python walkers.py -n PPO -k 15 -s
+                (2) python copy_walkers.py -n PPO -k 15 -s
                     - starts walkers by creating new PPO agent,
                       testing it for 15 episodes, and saving it
-                (3) python walkers.py -l agents_walkers/ppo_ant_10000.zip \
+                (3) python copy_walkers.py -l agents_walkers/ppo_ant_10000.zip \
                         -k 10 -q
                     - runs walkers by loading a PPO training agent
                       and testing its performance without rendering
@@ -103,67 +103,65 @@ def readCommand(argv) -> list:
     # return the parsed arguments
     return parser.parse_args()
 
-def runEpisode(agent,
-               env,
-               agent_type: str = None,
-               lstm_states=None,
-               num_envs=None,
-               episode_starts=None,
-               ) -> int:
+def runEpisode(agent, env) -> int:
     """
-    Runs a single episode.
+    Runs a single episode for an agent without LSTM.
     Returns the episode returns.
-    Test procedure is different for rppo agents because
-    they have lstm states to track.
     """
 
     obs, info = env.reset() # reset env
     is_episode_over = False # loop control variable
-    info = None # episodic returns
 
-    # determine if testing an lstm agent
-    if agent_type == "rppo":
-        # take actions and update agent until episode termination
-        while not is_episode_over:
+    # take actions and update agent until episode termination
+    while not is_episode_over:
 
-            action = None # store action here
+        # agent chooses action
+        action, _states = agent.predict(obs, deterministic=True)
 
-            # agent chooses action
-            action, lstm_states = agent.predict(obs,
-                                                state=lstm_states,
-                                                episode_start=episode_starts,
-                                                deterministic=True,
-                                                )
+        # environment applies action
+        next_obs, reward, terminated, trunc, info = env.step(action)
 
-            # environment applies action
-            next_obs, reward, terminated, trunc, info = env.step(action)
+        # move to the next state 
+        obs = next_obs
+        is_episode_over = terminated or trunc
 
-            # move to the next state and update episode rewards
-            obs = next_obs
-            is_episode_over = terminated or trunc
+        # Note: environment wrapper automatically tracks episode returns
 
-        # return repisode returns and lstm_states
-        return info["episode"]["r"], lstm_states
+    # return episode returns
+    return info["episode"]["r"] 
 
-    # not testing an lstm agent
-    else:
-        # take actions and update agent until episode termination
-        while not is_episode_over:
+def runEpisodeLSTM(agent, env) -> int:
+    """
+    Runs a single episode for an agent with LSTM.
+    Returns the episode returns.
+    """
 
-            action = None # store action here
+    obs, info = env.reset() # reset env
+    is_episode_over = False # loop control variable
+    lstm_states = None # track hidden state of LSTM stuff
+    episode_starts = np.array([True]) # helps reset lstm_states
 
-            # agent chooses action
-            action, _states = agent.predict(obs, deterministic=True)
+    # take actions and update agent until episode termination
+    while not is_episode_over:
 
-            # environment applies action
-            next_obs, reward, terminated, trunc, info = env.step(action)
+        # agent chooses action
+        action, lstm_states = agent.predict(obs,
+                                            state=lstm_states,
+                                            episode_start=episode_starts,
+                                            deterministic=True)
 
-            # move to the next state and update episode rewards
-            obs = next_obs
-            is_episode_over = terminated or trunc
+        # environment applies action
+        next_obs, reward, terminated, trunc, info = env.step(action)
 
-        # return episode returns
-        return info["episode"]["r"] 
+        # move to the next state 
+        obs = next_obs
+        is_episode_over = terminated or trunc
+        episode_starts = np.array([terminated or trunc])
+
+        # Note: environment wrapper automatically tracks episode returns
+
+    # return episode returns
+    return info["episode"]["r"] 
 
 def runManyEpisodes(agent,
                     env,
@@ -172,62 +170,34 @@ def runManyEpisodes(agent,
                     ) -> None: 
     """
     Runs all the episodes for testing mode.
-    Test procedure for rppo agents is different
-    since they have lstm states to track.
+    Reports the average returns from testing.
     """
 
     print(f"\nBEGINNING TESTING FOR {num_episodes} EPISODES...")
 
-    # determine if training lstm agent
-    if agent_type == "rppo":
+    # track episodic returns
+    rewards = []
 
-        # track episodic returns
-        rewards = []
+    # run the episodes
+    for i in range(1, num_episodes + 1):
+        print(f"\nEPISODE {i}...")
+        episode_rewards = 0 # initialize and set this in scope
 
-        # variables for lstm algorithms
-        lstm_states = None
-        num_envs = 1
-        episode_starts = np.ones((num_envs,), dtype=bool)
+        # decide whether to run LSTM episode
+        if agent_type == "rppo":
+            episode_rewards = runEpisodeLSTM(agent, env)
+        else:
+            episode_rewards = runEpisode(agent, env)
 
-        # run the episodes
-        for i in range(1, num_episodes + 1):
-            print(f"\nEPISODE {i}...")
-            episode_rewards, lstm_states = runEpisode(agent,
-                                                      env,
-                                                      agent_type=agent_type,
-                                                      lstm_states=lstm_states,
-                                                      num_envs=num_envs,
-                                                      episode_starts=episode_starts,
-                                                      )
-            rewards.append(episode_rewards)
+        # add episode returns to running list
+        rewards.append(episode_rewards)
 
-        # calculate performance
-        avg_reward = np.mean(rewards)
+    # calculate performance
+    avg_reward = np.mean(rewards)
 
-        # report performance
-        print(f"\nTESTING PERFORMANCE FOR {num_episodes} EPISODES...")
-        print(f"avg reward : {avg_reward:.3f}")
-
-    # not training lstm agent
-    else:
-        # track episodic returns
-        rewards = []
-
-        # run the episodes
-        for i in range(1, num_episodes + 1):
-            print(f"\nEPISODE {i}...")
-            episode_rewards = runEpisode(agent,
-                                         env,
-                                         agent_type=agent_type,
-                                         )
-            rewards.append(episode_rewards)
-
-        # calculate performance
-        avg_reward = np.mean(rewards)
-
-        # report performance
-        print(f"\nTESTING PERFORMANCE FOR {num_episodes} EPISODES...")
-        print(f"avg reward : {avg_reward:.3f}")
+    # report performance
+    print(f"\nTESTING PERFORMANCE FOR {num_episodes} EPISODES...")
+    print(f"avg reward : {avg_reward:.3f}")
 
 def createAgent(new_agent: str = None,
                 load_agent: str = None,
@@ -379,7 +349,7 @@ def saveAgent(agent=None,
 
 def main() -> None:
     """
-    Runs walkers.py
+    Runs copy_walkers.py
     """
 
     # read in the options from the command line
