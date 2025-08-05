@@ -228,6 +228,8 @@ class CustomDDPG():
     CustomDDPG agent.
     Utilizes a custom replay buffer and OUActionNoise.
     This agent's environment needs to have actions normalized.
+
+    Refer to: https://colab.research.google.com/github/MrSyee/pg-is-all-you-need/blob/master/03.DDPG.ipynb#scrollTo=wqJRBjH3E6BM
     """
 
     def __init__(self,
