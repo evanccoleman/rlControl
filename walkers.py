@@ -16,7 +16,7 @@ from stable_baselines3.common.noise import NormalActionNoise
 from sb3_contrib import RecurrentPPO
 
 # custom agents
-from custom_ddpg import CustomDDPG, ActionNormalizer
+# from custom_ddpg import CustomDDPG, ActionNormalizer
 
 def readCommand(argv) -> list:
     """
@@ -270,15 +270,15 @@ def createAgent(new_agent: str = None,
         print("\nCREATING NEW RPPO AGENT...\n")
         agent = RecurrentPPO("MlpLstmPolicy", env, verbose=1)
         agent_type = "rppo"
-    elif new_agent == "customddpg":
-        print("\nCREATING NEW CUSTOMDDPG AGENT...\n")
-        agent = CustomDDPG(env=env,
-                           learning_rate=alpha,
-                           gamma=gamma,
-                           batch_size=batch_size,
-                           buffer_size=buffer_size,
-                           )
-        agent_type = "customddpg"
+#    elif new_agent == "customddpg":
+#        print("\nCREATING NEW CUSTOMDDPG AGENT...\n")
+#        agent = CustomDDPG(env=env,
+#                           learning_rate=alpha,
+#                           gamma=gamma,
+#                           batch_size=batch_size,
+#                           buffer_size=buffer_size,
+#                           )
+#        agent_type = "customddpg"
 
     # load agent in from zip file as is
     else:
@@ -386,9 +386,9 @@ def main() -> None:
                                     batch_size=args.batch_size
                                     )
 
-    # add action normalizer wrapper to env if agent is custom ddpg
-    if agent_type == "customddpg":
-        env = ActionNormalizer(env)
+#    # add action normalizer wrapper to env if agent is custom ddpg
+#    if agent_type == "customddpg":
+#        env = ActionNormalizer(env)
 
     # train agent
     if args.numTrain > 0:
