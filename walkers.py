@@ -39,9 +39,7 @@ def readCommand(argv) -> list:
     """
 
     # create the argument parser
-    parser = argparse.ArgumentParser(usage=usage_str,
-                                     description="Change settings for \
-                                             walkers from the defaults")
+    parser = argparse.ArgumentParser(usage=usage_str)
 
     # options for creating/saving agent and the env
     parser.add_argument("-n", "--new_agent",
@@ -90,15 +88,6 @@ def readCommand(argv) -> list:
     parser.add_argument("--batch_size",
                         type=int, default=256,
                         metavar="BATCH", help="The size of minibatches (default 256).")
-    parser.add_argument("--policy_delay", # not implemented
-                        type=int, default=2,
-                        metavar="DELAY", help="How often the policy should be updated \
-                        relative to Q-function updates (default 2).")
-    parser.add_argument("--target_policy_noise", # not implemented
-                        type=int, default=0.2,
-                        metavar="NOISE", help="Standard deviation of Guassian noise \
-                                added to target policy, the smoothing noise \
-                                (default 0.2).")
 
     # return the parsed arguments
     return parser.parse_args()
