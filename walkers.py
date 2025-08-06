@@ -1,4 +1,4 @@
-# copy_walkers.py
+# walkers.py
 
 # good ol' numpy
 import numpy as np
@@ -24,15 +24,15 @@ def readCommand(argv) -> list:
     the environment and the agent.
     """
 
-    # instructions for how to run copy_walkers.py found using -h
+    # instructions for how to run walkers.py found using -h
     usage_str = """
-    USAGE:      python copy_walkers.py <options>
-    EXAMPLES:   (1) python copy_walkers.py
+    USAGE:      python walkers.py <options>
+    EXAMPLES:   (1) python walkers.py
                     - starts walkers with default settings
-                (2) python copy_walkers.py -n PPO -k 15 -s
+                (2) python walkers.py -n PPO -k 15 -s
                     - starts walkers by creating new PPO agent,
                       testing it for 15 episodes, and saving it
-                (3) python copy_walkers.py -l agents_walkers/ppo_ant_10000.zip \
+                (3) python walkers.py -l agents_walkers/ppo_ant_10000.zip \
                         -k 10 -q
                     - runs walkers by loading a PPO training agent
                       and testing its performance without rendering
@@ -232,7 +232,7 @@ def createAgent(new_agent: str = None,
         # noise objects for DDPG
         n_actions = env.action_space.shape[-1]
         action_noise = NormalActionNoise(mean=np.zeros(n_actions),
-                                         sigma=0.1 * np.ones(n_actions)
+                                         sigma=0.1*np.ones(n_actions)
                                          )
         agent = DDPG("MlpPolicy", env, verbose=1,
                      action_noise=action_noise,
@@ -247,7 +247,7 @@ def createAgent(new_agent: str = None,
         # noise objects for DDPG
         n_actions = env.action_space.shape[-1]
         action_noise = NormalActionNoise(mean=np.zeros(n_actions),
-                                         sigma=0.1 * np.ones(n_actions)
+                                         sigma=0.1*np.ones(n_actions)
                                          )
         agent = TD3("MlpPolicy", env, verbose=1,
                     action_noise=action_noise,
@@ -260,15 +260,20 @@ def createAgent(new_agent: str = None,
     elif new_agent == "sac":
         print("\nCREATING NEW SAC AGENT...\n")
         agent = SAC("MlpPolicy", env, verbose=1,
-                    learning_rate = alpha,
-                    gamma = gamma,
-                    batch_size = batch_size,
-                    buffer_size = buffer_size,
+                    learning_rate=alpha,
+                    gamma=gamma,
+                    batch_size=batch_size,
+                    buffer_size=buffer_size,
                     )
         agent_type = "sac"
     elif new_agent == "rppo":
         print("\nCREATING NEW RPPO AGENT...\n")
-        agent = RecurrentPPO("MlpLstmPolicy", env, verbose=1)
+        agent = RecurrentPPO("MlpLstmPolicy", env, verbose=1,
+                             learning_rate=alpha,
+                             gamma=gamma,
+                             batch_size=batch_size,
+
+                             )
         agent_type = "rppo"
 #    elif new_agent == "customddpg":
 #        print("\nCREATING NEW CUSTOMDDPG AGENT...\n")
@@ -349,7 +354,7 @@ def saveAgent(agent=None,
 
 def main() -> None:
     """
-    Runs copy_walkers.py
+    Runs walkers.py
     """
 
     # read in the options from the command line
