@@ -303,7 +303,7 @@ def createAgent(new_agent: str = None,
             print(f"\nLOADING RPPO AGENT '{load_agent}'...\n")
             agent = RecurrentPPO.load(load_agent, env=env)
         else:
-            raise Exception("Agent not implemented.")
+            raise Exception(f"Agent {agent_type} not implemented.")
 
     # return tuple
     return agent, agent_type
