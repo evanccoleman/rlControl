@@ -298,8 +298,14 @@ def objective(trial: optuna.Trial) -> float:
                     )
     except AssertionError as e:
         # sometimes, random hyperparams can generate NaN
+        print(f"Trial failed with AssertionError:")
         print(e)
         nan_encountered = True
+    except ValueError as e:
+        # sometimes, invalid hyperparameters cause crashes
+        print(f"Trial failed with ValueError:")
+        print(e)
+        raise optuna.exceptions.TrialPruned()
     finally:
         # free memory
         agent.env.close()
