@@ -86,10 +86,16 @@ def sampleParamsPPO(trial: optuna.Trial) -> dict:
     # hyperparamters to tune
     learning_rate = trial.suggest_float("learning_rate", 0.00001, 1, log=True)
     gamma = trial.suggest_float("gamma", 0.9, 0.999, log=True)
-    batch_size = trial.suggest_int("batch_size", 64, 1000000, log=True)
+    batch_size = trial.suggest_categorical("batch_size", [64, 128, 256, 512, 1024])
     ent_coef = trial.suggest_float("ent_coef", 0.00001, 0.1, log=True)
     vf_coef = trial.suggest_float("vf_coef", 0.5, 1.0, log=True)
-    n_steps = 2 ** trial.suggest_int("exponent_n_steps", 3, 10)
+    n_steps = 2 ** trial.suggest_int("n_steps_exponent", 3, 11)
+
+    # Note: since n_env is always 1, the rollout buffer size == n_steps
+    
+    # check for buffer_size and batch_size compatibility
+    if n_steps % batch_size != 0:
+        raise optuna.exceptions.TrialPruned()
 
     # other info for this trial to track
     trial.set_user_attr("learning_rate_", learning_rate)
@@ -124,7 +130,6 @@ def objective(trial: optuna.Trial) -> float:
         raise Exception("Must specify an environment to create.")
 
     # create environment
-    print("\n\nCREATING EVALUATION ENVIRONMENT...")
     eval_env = Monitor(gym.make(args.env))
 
     # create action noise for DDPG and TD3 agents
@@ -134,7 +139,6 @@ def objective(trial: optuna.Trial) -> float:
                                      )
 
     # getting hyperparameters for agent
-    print(f"\nGETTING HYPERPARAMETERS FOR {args.agent_type} AGENT...")
     kwargs = {"agent_type": args.agent_type,
               "env": eval_env,
               "policy": "MlpPolicy",
@@ -146,7 +150,6 @@ def objective(trial: optuna.Trial) -> float:
     kwargs.update(sampleParamsPPO(trial))
     
     # create agent
-    print(f"\nCREATING {args.agent_type} AGENT...")
     agent = createAgent(**kwargs) 
 
     # create callback to periodically evaluate and report the performance
@@ -157,7 +160,6 @@ def objective(trial: optuna.Trial) -> float:
 
     nan_encountered = False
     try:
-        print(f"\nTRAINING FOR AT LEAST {args.num_timesteps} STEPS...")
         agent.learn(total_timesteps=args.num_timesteps,
                     log_interval=5,
                     progress_bar=True,
@@ -169,7 +171,6 @@ def objective(trial: optuna.Trial) -> float:
         nan_encountered = True
     finally:
         # free memory
-        print(f"\nCLOSING EVALUATION ENVIRONMENT...")
         agent.env.close()
         eval_env.close()
 
@@ -194,12 +195,10 @@ def main():
     torch.set_num_threads(1)
 
     # create sampler and pruner
-    print(f"\n\nCREATING SAMPLER AND PRUNER...")
     sampler = TPESampler(n_startup_trials=5)
     pruner = MedianPruner(n_startup_trials=5)
 
     # create a study to optimize
-    print(f"\nCREATING A STUDY...")
     study = optuna.create_study(sampler=sampler,
                                 pruner=pruner,
                                 direction="maximize",
@@ -207,18 +206,16 @@ def main():
 
     # optimize the hyperparameters
     try:
-        print(f"\nOPTIMIZING THE STUDY...")
-        study.optimize(objective)
+        study.optimize(objective, n_trials=10000)
     except KeyboardInterrupt:
-        # print results so far even if force quit process
         pass
 
     # report best hyperparameters
-    best = study.best_trial
+    trial = study.best_trial
     print(f"\n\n...RESULTS...")
     print("Number of finished trials: ", len(study.trials))
     print("Best trial:")
-    print(f"\tValue: {best.value}")
+    print(f"\tValue: {trial.value}")
     print(f"\tParams:")
     for key, value in trial.params.items():
         print(f"\t\t{key} : {value}")
