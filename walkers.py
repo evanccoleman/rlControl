@@ -216,6 +216,7 @@ def createAgent(new_agent: str = None,
                     batch_size=batch_size,
                     )
         agent_type = "ppo"
+
     elif new_agent == "ddpg":
         print("\nCREATING NEW DDPG AGENT...\n")
         # noise objects for DDPG
@@ -231,6 +232,7 @@ def createAgent(new_agent: str = None,
                      buffer_size=buffer_size,
                      )
         agent_type = "ddpg"
+
     elif new_agent == "td3":
         print("\nCREATING NEW TD3 AGENT...\n")
         # noise objects for DDPG
@@ -246,6 +248,7 @@ def createAgent(new_agent: str = None,
                     buffer_size=buffer_size,
                     )
         agent_type = "td3"
+
     elif new_agent == "sac":
         print("\nCREATING NEW SAC AGENT...\n")
         agent = SAC("MlpPolicy", env, verbose=1,
@@ -255,6 +258,7 @@ def createAgent(new_agent: str = None,
                     buffer_size=buffer_size,
                     )
         agent_type = "sac"
+
     elif new_agent == "rppo":
         print("\nCREATING NEW RPPO AGENT...\n")
         agent = RecurrentPPO("MlpLstmPolicy", env, verbose=1,
@@ -264,6 +268,7 @@ def createAgent(new_agent: str = None,
 
                              )
         agent_type = "rppo"
+        
 #    elif new_agent == "customddpg":
 #        print("\nCREATING NEW CUSTOMDDPG AGENT...\n")
 #        agent = CustomDDPG(env=env,

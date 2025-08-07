@@ -124,11 +124,10 @@ def createAgent(agent_type, **kwargs):
 
 def sampleParamsPPO(trial: optuna.Trial) -> dict: 
     """
-    Sample some PPO hyperparameters.
+    Sample some hyperparameters for PPO agent.
     """
 
-    # hyperparamters to tune
-    learning_rate = trial.suggest_float("learning_rate", 0.00001, 1, log=True)
+    learning_rate = trial.suggest_float("learning_rate", 0.00001, 1.0, log=True)
     gamma = trial.suggest_float("gamma", 0.9, 0.999, log=True)
     batch_size = trial.suggest_categorical("batch_size", [64, 128, 256, 512, 1024])
     ent_coef = trial.suggest_float("ent_coef", 0.00001, 0.1, log=True)
@@ -137,17 +136,89 @@ def sampleParamsPPO(trial: optuna.Trial) -> dict:
 
     # Note: since n_env is always 1, the rollout buffer size == n_steps
     
-    # check for buffer_size and batch_size compatibility
+    # check for rollout buffer size and batch size compatibility
     if n_steps % batch_size != 0:
         raise optuna.exceptions.TrialPruned()
 
-    # other info for this trial to track
-    trial.set_user_attr("learning_rate_", learning_rate)
-    trial.set_user_attr("gamma_", gamma)
-    trial.set_user_attr("batch_size_", batch_size)
-    trial.set_user_attr("ent_coef", ent_coef)
-    trial.set_user_attr("vf_coef", vf_coef)
-    trial.set_user_attr("n_steps_", n_steps)
+    return {"learning_rate": learning_rate,
+            "gamma": gamma,
+            "batch_size": batch_size,
+            "ent_coef": ent_coef,
+            "vf_coef":vf_coef,
+            "n_steps": n_steps,
+            }
+
+def sampleParamsDDPG(trial: optuna.Trial) -> dict:
+    """
+    Sample some hyperparameters for DDPG agent.
+    """
+
+    learning_rate = trial.suggest_float("learning_rate", 0.00001, 1.0, log=True)
+    gamma = trial.suggest_float("gamma", 0.9, 0.999, log=True)
+    batch_size = trial.suggest_categorical("batch_size", [64, 128, 256, 512, 1024])
+    buffer_size = trial.suggest_int("buffer_size", 10000, 1000000, log=True)
+    tau = trial.suggest_float("tau", 0.003, 0.5, log=True)
+    n_steps = 2 ** trial.suggest_int("n_steps_exponent", 3, 11)
+
+    return {"learning_rate": learning_rate,
+            "gamma": gamma,
+            "batch_size": batch_size,
+            "buffer_size": buffer_size,
+            "tau": tau,
+            "n_steps": n_steps,
+            }
+   
+def sampleParamsTD3(trial: optuna.Trial) -> dict:
+    """
+    Sample some hyperparameters for TD3 agent.
+    """
+    
+    learning_rate = trial.suggest_float("learning_rate", 0.00001, 1.0, log=True)
+    gamma = trial.suggest_float("gamma", 0.9, 0.999, log=True)
+    batch_size = trial.suggest_categorical("batch_size", [64, 128, 256, 512, 1024])
+    buffer_size = trial.suggest_int("buffer_size", 10000, 1000000, log=True)
+    n_steps = 2 ** trial.suggest_int("n_steps_exponent", 3, 11)
+
+    return {"learning_rate": learning_rate,
+            "gamma": gamma,
+            "batch_size": batch_size,
+            "buffer_size": buffer_size,
+            "n_steps": n_steps,
+            }
+ 
+def sampleParamsSAC(trial: optuna.Trial) -> dict:
+    """
+    Sample some hyperparameters for SAC agent.
+    """
+
+    learning_rate = trial.suggest_float("learning_rate", 0.00001, 1.0, log=True)
+    gamma = trial.suggest_float("gamma", 0.9, 0.999, log=True)
+    batch_size = trial.suggest_categorical("batch_size", [64, 128, 256, 512, 1024])
+    buffer_size = trial.suggest_int("buffer_size", 10000, 1000000, log=True)
+    tau = trial.suggest_float("tau", 0.003, 0.5, log=True)
+    ent_coef = trial.suggest_float("ent_coef", 0.00001, 0.1, log=True)
+    n_steps = 2 ** trial.suggest_int("n_steps_exponent", 3, 11)
+
+    return {"learning_rate": learning_rate,
+            "gamma": gamma,
+            "batch_size": batch_size,
+            "buffer_size": buffer_size,
+            "tau": tau,
+            "ent_coef": ent_coef,
+            "n_steps": n_steps,
+            }
+ 
+def sampleParamsRPPO(trial: optuna.Trial) -> dict:
+    """
+    Sample some hyperparamters for RPPO agent.
+    """
+
+    learning_rate = trial.suggest_float("learning_rate", 0.00001, 1.0, log=True)
+    gamma = trial.suggest_float("gamma", 0.9, 0.999, log=True)
+    batch_size = trial.suggest_categorical("batch_size", [64, 128, 256, 512, 1024])
+    ent_coef = trial.suggest_float("ent_coef", 0.00001, 0.1, log=True)
+    vf_coef = trial.suggest_float("vf_coef", 0.5, 1.0, log=True)
+    n_steps = 2 ** trial.suggest_int("n_steps_exponent", 3, 11)
 
     return {"learning_rate": learning_rate,
             "gamma": gamma,
@@ -176,22 +247,38 @@ def objective(trial: optuna.Trial) -> float:
     # create environment
     eval_env = Monitor(gym.make(args.env))
 
-    # create action noise for DDPG and TD3 agents
-    n_actions = eval_env.action_space.shape[-1]
-    action_noise = NormalActionNoise(mean=np.zeros(n_actions),
-                                     sigma=0.1*np.ones(n_actions),
-                                     )
-
-    # getting hyperparameters for agent
+    # initialize hyperparameters all agent constructors need
     kwargs = {"agent_type": args.agent_type,
               "env": eval_env,
               "policy": "MlpPolicy",
               }
-    if args.agent_type == "ddpg" or args.agent_type == "td3":
+
+    # get hyperparameters dependent on agent type
+    if args.agent_type == "ppo":
+        kwargs.update(sampleParamsPPO(trial))
+
+    elif args.agent_type == "ddpg":
+        n_actions = eval_env.action_space.shape[-1]
+        action_noise = NormalActionNoise(mean=np.zeros(n_actions),
+                                         sigma=0.1*np.ones(n_actions),
+                                         )
         kwargs.update(action_noise=action_noise)
+        kwargs.update(sampleParamsDDPG(trial))
+
+    elif args.agent_type == "td3":
+        n_actions = eval_env.action_space.shape[-1]
+        action_noise = NormalActionNoise(mean=np.zeros(n_actions),
+                                         sigma=0.1*np.ones(n_actions),
+                                         )
+        kwargs.update(action_noise=action_noise)
+        kwargs.update(sampleParamsTD3(trial))
+
+    elif args.agent_type == "sac":
+        kwargs.update(sampleParamsSAC(trial))
+
     if args.agent_type == "rppo":
         kwargs.update(policy="MlpLstmPolicy")
-    kwargs.update(sampleParamsPPO(trial))
+        kwargs.update(sampleParamsRPPO(trial))
     
     # create agent
     agent = createAgent(**kwargs) 
@@ -201,7 +288,7 @@ def objective(trial: optuna.Trial) -> float:
                                       trial,
                                       deterministic=True,
                                       )
-
+    # train agent
     nan_encountered = False
     try:
         agent.learn(total_timesteps=args.num_timesteps,
@@ -225,6 +312,7 @@ def objective(trial: optuna.Trial) -> float:
     if eval_callback.is_pruned:
         raise optuna.exceptions.TrialPruned()
 
+    # evaluate performance
     return eval_callback.last_mean_reward
 
 def main():
@@ -233,6 +321,17 @@ def main():
     other main functions in the same directory
     are isolated from each other, so I can run
     particular .py files when I want.
+
+    Note:
+    - Trial optimization starts at trial 0
+    - Number of finished trials includes interrupted one
+
+    Things to tweak:
+    - range of values possible for hyperparameters
+    - n_trials to optimize for
+    
+    Reference:
+    https://github.com/optuna/optuna-examples/blob/main/rl/sb3_simple.py#L79
     """
 
     # set pytorch num threads to 1 for faster training
