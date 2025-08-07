@@ -245,14 +245,18 @@ def objective(trial: optuna.Trial) -> float:
         raise Exception("Must specify an environment to create.")
 
     # create environment
-    eval_env = Monitor(gym.make(args.env))
+    eval_env = Monitor(gym.make(args.env, render_mode=None))
 
     # initialize hyperparameters all agent constructors need
     kwargs = {"agent_type": args.agent_type,
               "env": eval_env,
               "policy": "MlpPolicy",
               }
-
+    
+    # have standard output say agent type and env type
+    print(f"AGENT TYPE: {args.agent_type}")
+    print(f"ENV TYPE: {args.env}")
+    
     # get hyperparameters dependent on agent type
     if args.agent_type == "ppo":
         kwargs.update(sampleParamsPPO(trial))
@@ -362,7 +366,7 @@ def main():
     # report best hyperparameters
     trial = study.best_trial
     print(f"\n\n...RESULTS...")
-    print("Number of finished trials: ", len(study.trials))
+    print("Number of finished trials (n_steps): ", len(study.trials))
     print("Best trial:")
     print(f"\tValue: {trial.value}")
     print(f"\tParams:")
