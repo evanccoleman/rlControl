@@ -124,6 +124,7 @@ def objective(trial: optuna.Trial) -> float:
         raise Exception("Must specify an environment to create.")
 
     # create environment
+    print("\n\nCREATING EVALUATION ENVIRONMENT...")
     eval_env = Monitor(gym.make(args.env))
 
     # create action noise for DDPG and TD3 agents
@@ -132,7 +133,8 @@ def objective(trial: optuna.Trial) -> float:
                                      sigma=0.1*np.ones(n_actions),
                                      )
 
-    # create agent
+    # getting hyperparameters for agent
+    print(f"\nGETTING HYPERPARAMETERS FOR {args.agent_type} AGENT...")
     kwargs = {"agent_type": args.agent_type,
               "env": eval_env,
               "policy": "MlpPolicy",
@@ -142,6 +144,9 @@ def objective(trial: optuna.Trial) -> float:
     if args.agent_type == "rppo":
         kwargs.update(policy="MlpLstmPolicy")
     kwargs.update(sampleParamsPPO(trial))
+    
+    # create agent
+    print(f"\nCREATING {args.agent_type} AGENT...")
     agent = createAgent(**kwargs) 
 
     # create callback to periodically evaluate and report the performance
@@ -152,13 +157,19 @@ def objective(trial: optuna.Trial) -> float:
 
     nan_encountered = False
     try:
-        agent.learn(args.num_timesteps, callback=eval_callback)
+        print(f"\nTRAINING FOR AT LEAST {args.num_timesteps} STEPS...")
+        agent.learn(total_timesteps=args.num_timesteps,
+                    log_interval=5,
+                    progress_bar=True,
+                    callback=eval_callback,
+                    )
     except AssertionError as e:
         # sometimes, random hyperparams can generate NaN
         print(e)
         nan_encountered = True
     finally:
         # free memory
+        print(f"\nCLOSING EVALUATION ENVIRONMENT...")
         agent.env.close()
         eval_env.close()
 
@@ -183,10 +194,12 @@ def main():
     torch.set_num_threads(1)
 
     # create sampler and pruner
+    print(f"\n\nCREATING SAMPLER AND PRUNER...")
     sampler = TPESampler(n_startup_trials=5)
     pruner = MedianPruner(n_startup_trials=5)
 
     # create a study to optimize
+    print(f"\nCREATING A STUDY...")
     study = optuna.create_study(sampler=sampler,
                                 pruner=pruner,
                                 direction="maximize",
@@ -194,6 +207,7 @@ def main():
 
     # optimize the hyperparameters
     try:
+        print(f"\nOPTIMIZING THE STUDY...")
         study.optimize(objective)
     except KeyboardInterrupt:
         # print results so far even if force quit process
@@ -201,6 +215,7 @@ def main():
 
     # report best hyperparameters
     best = study.best_trial
+    print(f"\n\n...RESULTS...")
     print("Number of finished trials: ", len(study.trials))
     print("Best trial:")
     print(f"\tValue: {best.value}")
@@ -210,6 +225,8 @@ def main():
     print(f"\tUser attrs:")
     for key, value in trial.user_attrs.items():
         print(f"\t\t{key} : {value}")
+
+    print("\n\n")
 
 if __name__ == "__main__":
     main()
