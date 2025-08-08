@@ -27,15 +27,15 @@ def readCommand(argv) -> list:
     # instructions for how to run walkers.py found using -h
     usage_str = """
     USAGE:      python walkers.py <options>
-    EXAMPLES:   (1) python walkers.py
-                    - starts walkers with default settings
-                (2) python walkers.py -n PPO -k 15 -s
-                    - starts walkers by creating new PPO agent,
-                      testing it for 15 episodes, and saving it
-                (3) python walkers.py -l agents_walkers/ppo_ant_10000.zip \
-                        -k 10 -q
-                    - runs walkers by loading a PPO training agent
-                      and testing its performance without rendering
+    EXAMPLES:   (1) python walkers.py -n ppo -env Ant-v5 -i 10000 \
+            -k 10 -sq
+                    - trains ppo agent in Ant-v5 for 10000 steps and \
+                            tests for 10 episodes
+                    - also saves the agent and runs without rendering
+                (2) python walkers.py -l agents_walkers/ppo_ant_10000\
+                        .zip -env Ant-v5 -k 10
+                    - loads a ppo agent into Ant-v5 and tests for 10 \
+                            episodes with rendering
     """
 
     # create the argument parser
@@ -57,7 +57,7 @@ def readCommand(argv) -> list:
                                 and the save directory is automatically \
                                 determined. Looks like \
                                 'agents_ant/ppo_ant_10000.zip'.")
-    parser.add_argument("--env",
+    parser.add_argument("-env", "--env_type",
                         type=str, default=None,
                         help="Which environment to put agent in.")
 
@@ -308,7 +308,7 @@ def createAgent(new_agent: str = None,
     return agent, agent_type
 
 def saveAgent(agent=None,
-              env=None,
+              env_type: str = None,
               load: str = None,
               agent_type: str = None,
               num_train=None,
@@ -323,7 +323,7 @@ def saveAgent(agent=None,
     # saving a fresh agent
     if load is None:
         # create save name
-        the_env = env.split("-")[0]
+        the_env = env_type.split("-")[0]
         the_env = the_env.lower()
         save_name = "agents_" + the_env + "/" + \
                 agent_type + "_" + the_env + "_" + str(num_train) + ".zip" 
@@ -338,13 +338,26 @@ def saveAgent(agent=None,
         new_num_train = num_train + old_num_train
 
         # create save name
-        the_env = env.split("-")[0]
+        the_env = env_type.split("-")[0]
         the_env = the_env.lower()
         save_name = "agents_" + the_env + "/" + \
                 agent_type + "_" + the_env + "_" + str(new_num_train) + ".zip"
 
         print(f"\nSAVING AGENT TO '{save_name}'...")
         agent.save(save_name)
+
+def createEnv(env_type: str, quiet: bool):
+    """
+    Creates a gymnasium env.
+    """
+    env = None
+    if args.quiet:
+        env = gym.make(env_type) # no rendering
+    else:
+        env = gym.make(env_type, render_mode="human")
+    env = gym.wrappers.RecordEpisodeStatistics(env) # track returns
+    return env
+
 
 def main() -> None:
     """
@@ -353,6 +366,9 @@ def main() -> None:
 
     # read in the options from the command line
     args = readCommand(sys.argv[1:])
+
+    # auto-convert new_agent to be lowercase
+    args.new_agent = args.new_agent.lower()
 
     # user must specify an agent
     if (args.new_agent is None) and (args.load_agent is None):
@@ -363,17 +379,12 @@ def main() -> None:
         raise Exception("Can only run program with one agent.")
 
     # user must specify an environment
-    if args.env is None:
+    if args.env_type is None:
         raise Exception("Must specify an environment to create.")
 
     # create the environment
-    print(f"\n\nCREATING ENVIRONMENT IN {args.env}...")
-    env = None
-    if args.quiet:
-        env = gym.make(args.env) # no rendering
-    else:
-        env = gym.make(args.env, render_mode="human")
-    env = gym.wrappers.RecordEpisodeStatistics(env) # track returns
+    print(f"\n\nCREATING ENVIRONMENT IN {args.env_type}...")
+    env = createEnv(args.env_type)
 
     # create new agent and remember agent type
     agent, agent_type = createAgent(new_agent=args.new_agent,
@@ -401,7 +412,7 @@ def main() -> None:
     if args.save_agent:
         print(f"\nSAVING AGENT...")
         saveAgent(agent=agent,
-                  env=args.env,
+                  env=args.env_type,
                   load=args.load_agent,
                   agent_type=agent_type,
                   num_train=args.numTrain

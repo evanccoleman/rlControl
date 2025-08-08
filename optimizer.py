@@ -78,8 +78,8 @@ def readCommand(argv) -> list:
     # instructions for how to run optimizer.py
     usage_str = """
     USAGE:      python optimizer.py <options>
-    EXAMPLES:   (1) python optimizer.py -a ppo -e Ant-v5
-                    Runs the optimizer on an ant ppo agent.
+    EXAMPLES:   (1) python optimizer.py -a ppo -env Ant-v5
+                    - Runs the optimizer on an ant ppo agent.
     """
 
     # create argument parser
@@ -90,7 +90,7 @@ def readCommand(argv) -> list:
                         type=str, default=None,
                         metavar="A", help="The type of new agent to create \
                                 (default None).")
-    parser.add_argument("--env",
+    parser.add_argument("-env", "--env_type",
                         type=str, default=None,
                         help="Which environment to put agent in.")
     parser.add_argument("-s", "--num_timesteps",
@@ -241,11 +241,11 @@ def objective(trial: optuna.Trial) -> float:
         raise Exception("Must specify an agent to create.")
 
     # user must specify an environment
-    if args.env is None:
+    if args.env_type is None:
         raise Exception("Must specify an environment to create.")
 
     # create environment
-    eval_env = Monitor(gym.make(args.env, render_mode=None))
+    eval_env = Monitor(gym.make(args.env_type, render_mode=None))
 
     # initialize hyperparameters all agent constructors need
     kwargs = {"agent_type": args.agent_type,
@@ -255,7 +255,7 @@ def objective(trial: optuna.Trial) -> float:
     
     # have standard output say agent type and env type
     print(f"AGENT TYPE: {args.agent_type}")
-    print(f"ENV TYPE: {args.env}")
+    print(f"ENV TYPE: {args.env_type}")
     
     # get hyperparameters dependent on agent type
     if args.agent_type == "ppo":
