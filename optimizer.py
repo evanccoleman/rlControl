@@ -94,7 +94,7 @@ def readCommand(argv) -> list:
                         type=str, default=None,
                         help="Which environment to put agent in.")
     parser.add_argument("-s", "--num_timesteps",
-                        type=int, default=10000,
+                        type=int, default=1000,
                         metavar="N", help="Number of timesteps to train for.")
 
     # return the parsed args
@@ -339,6 +339,7 @@ def main():
     Things to tweak:
     - range of values possible for hyperparameters
     - n_trials to optimize for
+    - num_timesteps
     
     Reference:
     https://github.com/optuna/optuna-examples/blob/main/rl/sb3_simple.py#L79
@@ -359,7 +360,7 @@ def main():
 
     # optimize the hyperparameters
     try:
-        study.optimize(objective, n_trials=10000)
+        study.optimize(objective, n_trials=1000)
     except KeyboardInterrupt:
         pass
 
