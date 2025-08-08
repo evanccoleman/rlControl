@@ -18,6 +18,9 @@ from sb3_contrib import RecurrentPPO
 # custom agents
 # from custom_ddpg import CustomDDPG, ActionNormalizer
 
+# podworld
+from podworld.envs import PodWorldEnv
+
 def readCommand(argv) -> list:
     """
     Reads in command line options that set
@@ -99,6 +102,8 @@ def runEpisode(agent, env) -> int:
     """
 
     obs, info = env.reset() # reset env
+    episode_rewards = 0 # track episode returns
+    total_discount = 1
     is_episode_over = False # loop control variable
 
     # take actions and update agent until episode termination
@@ -114,10 +119,14 @@ def runEpisode(agent, env) -> int:
         obs = next_obs
         is_episode_over = terminated or trunc
 
-        # Note: environment wrapper automatically tracks episode returns
+        # update episode returns
+        episode_rewards += reward * total_discount
+        total_discount *= agent.gamma
 
     # return episode returns
-    return info["episode"]["r"] 
+    return episode_rewards 
+    # return info["episode"]["r"]
+
 
 def runEpisodeLSTM(agent, env) -> int:
     """
@@ -126,6 +135,8 @@ def runEpisodeLSTM(agent, env) -> int:
     """
 
     obs, info = env.reset() # reset env
+    episode_rewards = 0 # track episode returns
+    total_discount = 1
     is_episode_over = False # loop control variable
     lstm_states = None # track hidden state of LSTM stuff
     episode_starts = np.array([True]) # helps reset lstm_states
@@ -147,10 +158,13 @@ def runEpisodeLSTM(agent, env) -> int:
         is_episode_over = terminated or trunc
         episode_starts = np.array([terminated or trunc])
 
-        # Note: environment wrapper automatically tracks episode returns
+        # update episode returns
+        episode_rewards += reward * total_discount
+        total_discount *= agent.gamma
 
     # return episode returns
-    return info["episode"]["r"] 
+    return episode_rewards 
+    # return info["episode"]["r"]
 
 def runManyEpisodes(agent,
                     env,
@@ -351,11 +365,16 @@ def createEnv(env_type: str, quiet: bool):
     Creates a gymnasium env.
     """
     env = None
-    if args.quiet:
+    if env_type == "podworld":
+        env = PodWorldEnv() # no rendering unless call render()
+    elif quiet:
         env = gym.make(env_type) # no rendering
     else:
         env = gym.make(env_type, render_mode="human")
-    env = gym.wrappers.RecordEpisodeStatistics(env) # track returns
+    
+    # track returns automatically
+    # env = gym.wrappers.RecordEpisodeStatistics(env) 
+
     return env
 
 
@@ -368,7 +387,8 @@ def main() -> None:
     args = readCommand(sys.argv[1:])
 
     # auto-convert new_agent to be lowercase
-    args.new_agent = args.new_agent.lower()
+    if args.new_agent is not None:
+        args.new_agent = args.new_agent.lower()
 
     # user must specify an agent
     if (args.new_agent is None) and (args.load_agent is None):
@@ -384,7 +404,7 @@ def main() -> None:
 
     # create the environment
     print(f"\n\nCREATING ENVIRONMENT IN {args.env_type}...")
-    env = createEnv(args.env_type)
+    env = createEnv(env_type=args.env_type, quiet=args.quiet)
 
     # create new agent and remember agent type
     agent, agent_type = createAgent(new_agent=args.new_agent,
