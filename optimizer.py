@@ -79,7 +79,10 @@ def readCommand(argv) -> list:
     usage_str = """
     USAGE:      python optimizer.py <options>
     EXAMPLES:   (1) python optimizer.py -a ppo -env Ant-v5
-                    - Runs the optimizer on an ant ppo agent.
+                    - Runs the optimizer on an ant ppo agent
+                      where timesteps per trial is 10000 (default)
+                      and the number of trials to optimize for is
+                      10000 (hard-coded).
     """
 
     # create argument parser
@@ -92,10 +95,11 @@ def readCommand(argv) -> list:
                                 (default None).")
     parser.add_argument("-env", "--env_type",
                         type=str, default=None,
-                        help="Which environment to put agent in.")
-    parser.add_argument("-s", "--num_timesteps",
-                        type=int, default=1000,
-                        metavar="N", help="Number of timesteps to train for.")
+                        help="Which environment to put agent in (default None).")
+    parser.add_argument("--num_timesteps",
+                        type=int, default=10000,
+                        metavar="NS", help="Number of timesteps to train for \
+                                in each trial (default 10000).")
 
     # return the parsed args
     return parser.parse_args()
@@ -232,7 +236,7 @@ def objective(trial: optuna.Trial) -> float:
     """
     The objective function to define how to optimize.
     """
-
+    
     # read in the options from the command line
     args = readCommand(sys.argv[1:])
 
@@ -256,11 +260,7 @@ def objective(trial: optuna.Trial) -> float:
               "env": eval_env,
               "policy": "MlpPolicy",
               }
-    
-    # have standard output say agent type and env type
-    print(f"AGENT TYPE: {args.agent_type}")
-    print(f"ENV TYPE: {args.env_type}")
-    
+   
     # get hyperparameters dependent on agent type
     if args.agent_type == "ppo":
         kwargs.update(sampleParamsPPO(trial))
@@ -369,13 +369,15 @@ def main():
 
     # optimize the hyperparameters
     try:
-        study.optimize(objective, n_trials=1000)
+        study.optimize(objective, n_trials=10000)
     except KeyboardInterrupt:
         pass
 
-    # report best hyperparameters
+    # report agent type, env type, and best hyperparameters
     trial = study.best_trial
     print(f"\n\n...RESULTS...")
+    print(f"AGENT TYPE: {args.agent_type}")
+    print(f"ENV TYPE: {args.env_type}")
     print("Number of finished trials (n_steps): ", len(study.trials))
     print("Best trial:")
     print(f"\tValue: {trial.value}")

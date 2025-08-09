@@ -1,2 +1,5 @@
 # ignore open versions of files vim actively looks at
 *.swp
+
+# ignore mac stuff 
+.DS_STORE
