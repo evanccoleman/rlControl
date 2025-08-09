@@ -127,8 +127,8 @@ def sampleParamsPPO(trial: optuna.Trial) -> dict:
     Sample some hyperparameters for PPO agent.
     """
 
-    learning_rate = trial.suggest_float("learning_rate", 0.00001, 1.0, log=True)
-    gamma = trial.suggest_float("gamma", 0.9, 0.999, log=True)
+    learning_rate = trial.suggest_float("learning_rate", 1e-5, 1e-2, log=True)
+    gamma = trial.suggest_float("gamma", 0.9, 0.999, log=False)
     batch_size = trial.suggest_categorical("batch_size", [64, 128, 256, 512, 1024])
     ent_coef = trial.suggest_float("ent_coef", 0.00001, 0.1, log=True)
     vf_coef = trial.suggest_float("vf_coef", 0.5, 1.0, log=True)
@@ -153,8 +153,8 @@ def sampleParamsDDPG(trial: optuna.Trial) -> dict:
     Sample some hyperparameters for DDPG agent.
     """
 
-    learning_rate = trial.suggest_float("learning_rate", 0.00001, 1.0, log=True)
-    gamma = trial.suggest_float("gamma", 0.9, 0.999, log=True)
+    learning_rate = trial.suggest_float("learning_rate", 1e-5, 1e-2, log=True)
+    gamma = trial.suggest_float("gamma", 0.9, 0.999, log=False)
     batch_size = trial.suggest_categorical("batch_size", [64, 128, 256, 512, 1024])
     buffer_size = trial.suggest_int("buffer_size", 10000, 1000000, log=True)
     tau = trial.suggest_float("tau", 0.003, 0.5, log=True)
@@ -173,8 +173,8 @@ def sampleParamsTD3(trial: optuna.Trial) -> dict:
     Sample some hyperparameters for TD3 agent.
     """
     
-    learning_rate = trial.suggest_float("learning_rate", 0.00001, 1.0, log=True)
-    gamma = trial.suggest_float("gamma", 0.9, 0.999, log=True)
+    learning_rate = trial.suggest_float("learning_rate", 1e-5, 1e-2, log=True)
+    gamma = trial.suggest_float("gamma", 0.9, 0.999, log=False)
     batch_size = trial.suggest_categorical("batch_size", [64, 128, 256, 512, 1024])
     buffer_size = trial.suggest_int("buffer_size", 10000, 1000000, log=True)
     n_steps = 2 ** trial.suggest_int("n_steps_exponent", 3, 11)
@@ -191,8 +191,8 @@ def sampleParamsSAC(trial: optuna.Trial) -> dict:
     Sample some hyperparameters for SAC agent.
     """
 
-    learning_rate = trial.suggest_float("learning_rate", 0.00001, 1.0, log=True)
-    gamma = trial.suggest_float("gamma", 0.9, 0.999, log=True)
+    learning_rate = trial.suggest_float("learning_rate", 1e-5, 1e-2, log=True)
+    gamma = trial.suggest_float("gamma", 0.9, 0.999, log=False)
     batch_size = trial.suggest_categorical("batch_size", [64, 128, 256, 512, 1024])
     buffer_size = trial.suggest_int("buffer_size", 10000, 1000000, log=True)
     tau = trial.suggest_float("tau", 0.003, 0.5, log=True)
@@ -213,8 +213,8 @@ def sampleParamsRPPO(trial: optuna.Trial) -> dict:
     Sample some hyperparamters for RPPO agent.
     """
 
-    learning_rate = trial.suggest_float("learning_rate", 0.00001, 1.0, log=True)
-    gamma = trial.suggest_float("gamma", 0.9, 0.999, log=True)
+    learning_rate = trial.suggest_float("learning_rate", 1e-5, 1e-2, log=True)
+    gamma = trial.suggest_float("gamma", 0.9, 0.999, log=False)
     batch_size = trial.suggest_categorical("batch_size", [64, 128, 256, 512, 1024])
     ent_coef = trial.suggest_float("ent_coef", 0.00001, 0.1, log=True)
     vf_coef = trial.suggest_float("vf_coef", 0.5, 1.0, log=True)
@@ -245,7 +245,11 @@ def objective(trial: optuna.Trial) -> float:
         raise Exception("Must specify an environment to create.")
 
     # create environment
-    eval_env = Monitor(gym.make(args.env_type, render_mode=None))
+    try:
+        eval_env = Monitor(gym.make(args.env_type, render_mode=None))
+    except Exception as e:
+        print(f"Failed to create environment {args.env_type}: {e}")
+        raise optuna.exceptions.TrialPruned()
 
     # initialize hyperparameters all agent constructors need
     kwargs = {"agent_type": args.agent_type,
@@ -285,7 +289,12 @@ def objective(trial: optuna.Trial) -> float:
         kwargs.update(sampleParamsRPPO(trial))
     
     # create agent
-    agent = createAgent(**kwargs) 
+    try:
+        agent = createAgent(**kwargs)
+    except Exception as e:
+        print(f"Failed to create agent {args.agent_type}: {e}")
+        eval_env.close()
+        raise optuna.exceptions.TrialPruned() 
 
     # create callback to periodically evaluate and report the performance
     eval_callback = TrialEvalCallback(eval_env,
@@ -317,7 +326,7 @@ def objective(trial: optuna.Trial) -> float:
 
     # tell the optimizer that the trial failed
     if nan_encountered:
-        return float("nan")
+        raise optuna.exceptions.TrialPruned()
 
     if eval_callback.is_pruned:
         raise optuna.exceptions.TrialPruned()
