@@ -18,9 +18,6 @@ from sb3_contrib import RecurrentPPO
 # custom agents
 # from custom_ddpg import CustomDDPG, ActionNormalizer
 
-# podworld
-from podworld.envs import PodWorldEnv
-
 def readCommand(argv) -> list:
     """
     Reads in command line options that set
@@ -365,9 +362,7 @@ def createEnv(env_type: str, quiet: bool):
     Creates a gymnasium env.
     """
     env = None
-    if env_type == "podworld":
-        env = PodWorldEnv() # no rendering unless call render()
-    elif quiet:
+    if quiet:
         env = gym.make(env_type) # no rendering
     else:
         env = gym.make(env_type, render_mode="human")
