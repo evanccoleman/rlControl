@@ -5,6 +5,7 @@ import numpy as np
 
 # gymnasium
 import gymnasium as gym                     
+from gymnasium.spaces import Box
 
 # parser stuff
 import argparse 
@@ -17,6 +18,68 @@ from sb3_contrib import RecurrentPPO
 
 # custom agents
 # from custom_ddpg import CustomDDPG, ActionNormalizer
+
+# constants
+# if masking the obs space to create a POMDP,
+# mask the following indices
+INDICES_TO_MASK = [0]
+
+class StateMaskingWrapper(gym.ObservationWrapper):
+    """
+    Wrapper that masks (removes) specific indixes from a
+    Box observation space.
+
+    Useful for inducing partial observability in standard
+    MDP environments by withholding state information
+    from the agent.
+    """
+
+    def __init__(self,
+                 env: gym.Env,
+                 indices_to_mask: list,
+                 ):
+        """
+        Initialize a StateMaskingWrapper.
+        """
+
+        super().__init__(env)
+
+        # check if obs space is Box
+        if not isinstance(env.observation_space, Box):
+            raise TypeError(f"StateMaskingWrapper only supports Box \
+                    observation spaces but got \
+                    {type(env.observation_space)}") 
+
+        # remove duplicate indices and sort biggest to smallest
+        self.indices_to_mask = sorted(list(set(indices_to_mask)), reverse=True)
+        self.original_obs_space = env.observation_space
+
+        # validate indices
+        # assumes the original obs space is a 1D array
+        for idx in self.indices_to_mask:
+            if not 0 <= idx < self.original_obs_space.shape[0]:
+                raise ValueError(f"Index {idx} is out of bounds for \
+                        observation space shape \
+                        {self.original_obs_space.shape}")
+
+        # create a mask for keeping elements
+        self.keep_mask = np.ones(self.original_obs_space.shape,
+                                 dtype=bool)
+        self.keep_mask[self.indices_to_mask] = False
+
+        # modify the observation space
+        new_low = self.original_obs_space.low[self.keep_mask]
+        new_high = self.original_obs_space.high[self.keep_mask]
+        self.observation_space = Box(low=new_low,
+                                     high=new_high,
+                                     dtype=self.original_obs_space.dtype,
+                                     )
+
+    def observation(self, obs: np.ndarray) -> np.ndarray:
+        """
+        Applies the mask to the observation.
+        """
+        return obs[self.keep_mask]
 
 def readCommand(argv) -> list:
     """
@@ -52,7 +115,8 @@ def readCommand(argv) -> list:
                                 (default None).")
     parser.add_argument("-s", "--save_agent",
                         action="store_true",
-                        help="Whether to save the agent (default None). \
+                        help="Whether to save the agent (default False, \
+                                True when option is present). \
                                 If True, a save name is auto-generated \
                                 and the save directory is automatically \
                                 determined. Looks like \
@@ -72,7 +136,14 @@ def readCommand(argv) -> list:
                                 test for (default 0).")
     parser.add_argument("-q", "--quiet",
                         action="store_true",
-                        help="Whether to render env (default True).")
+                        help="Whether to render env (default False, \
+                                True when option is present).")
+    parser.add_argument("-m", "--mask_indices",
+                        action="store_true",
+                        help="Whether to mask indices in the \
+                                observation space and make the env \
+                                a POMDP (default False, True when \
+                                option is present).")
 
     # options for agent hyperparameters
     parser.add_argument("--alpha",
@@ -357,7 +428,10 @@ def saveAgent(agent=None,
         print(f"\nSAVING AGENT TO '{save_name}'...")
         agent.save(save_name)
 
-def createEnv(env_type: str, quiet: bool):
+def createEnv(env_type: str,
+              quiet: bool,
+              mask: bool, 
+              ):
     """
     Creates a gymnasium env.
     """
@@ -369,6 +443,12 @@ def createEnv(env_type: str, quiet: bool):
     
     # track returns automatically
     # env = gym.wrappers.RecordEpisodeStatistics(env) 
+
+    # mask observation space
+    if mask:
+        env = StateMaskingWrapper(env,
+                                  indices_to_mask=INDICES_TO_MASK,
+                                  )
 
     return env
 
@@ -399,7 +479,10 @@ def main() -> None:
 
     # create the environment
     print(f"\n\nCREATING ENVIRONMENT IN {args.env_type}...")
-    env = createEnv(env_type=args.env_type, quiet=args.quiet)
+    env = createEnv(env_type=args.env_type,
+                    quiet=args.quiet,
+                    mask=args.mask_indices,
+                    )
 
     # create new agent and remember agent type
     agent, agent_type = createAgent(new_agent=args.new_agent,
