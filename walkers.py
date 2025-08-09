@@ -144,6 +144,11 @@ def readCommand(argv) -> list:
                                 observation space and make the env \
                                 a POMDP (default False, True when \
                                 option is present).")
+    parser.add_argument("--no_discount",
+                        action="store_true",
+                        help="Whether to return discounted rewards \
+                                during testing (default False, True \
+                                when option is present).")
 
     # options for agent hyperparameters
     parser.add_argument("--alpha",
@@ -163,7 +168,10 @@ def readCommand(argv) -> list:
     # return the parsed arguments
     return parser.parse_args()
 
-def runEpisode(agent, env) -> int:
+def runEpisode(agent,
+               env: gym.Env,
+               no_discount: bool = False,
+               ) -> int:
     """
     Runs a single episode for an agent without LSTM.
     Returns the episode returns.
@@ -192,11 +200,15 @@ def runEpisode(agent, env) -> int:
         total_discount *= agent.gamma
 
     # return episode returns
-    return episode_rewards 
-    # return info["episode"]["r"]
+    if no_discount:
+        return info["episode"]["r"]
+    else:
+        return episode_rewards 
 
-
-def runEpisodeLSTM(agent, env) -> int:
+def runEpisodeLSTM(agent,
+                   env: gym.Env,
+                   no_discount: bool = False,
+                   ) -> int:
     """
     Runs a single episode for an agent with LSTM.
     Returns the episode returns.
@@ -231,13 +243,16 @@ def runEpisodeLSTM(agent, env) -> int:
         total_discount *= agent.gamma
 
     # return episode returns
-    return episode_rewards 
-    # return info["episode"]["r"]
+    if no_discount:
+        return info["episode"]["r"]
+    else:
+        return episode_rewards 
 
 def runManyEpisodes(agent,
                     env,
                     num_episodes: int = 0,
                     agent_type: str = None,
+                    no_discount: bool = False,
                     ) -> None: 
     """
     Runs all the episodes for testing mode.
@@ -256,9 +271,11 @@ def runManyEpisodes(agent,
 
         # decide whether to run LSTM episode
         if agent_type == "rppo":
-            episode_rewards = runEpisodeLSTM(agent, env)
+            episode_rewards = runEpisodeLSTM(agent, env,
+                                             no_discount=no_discount)
         else:
-            episode_rewards = runEpisode(agent, env)
+            episode_rewards = runEpisode(agent, env,
+                                         no_discount=no_discount)
 
         # add episode returns to running list
         rewards.append(episode_rewards)
@@ -436,13 +453,15 @@ def createEnv(env_type: str,
     Creates a gymnasium env.
     """
     env = None
+
+    # decide whether to render
     if quiet:
-        env = gym.make(env_type) # no rendering
+        env = gym.make(env_type)
     else:
         env = gym.make(env_type, render_mode="human")
     
-    # track returns automatically
-    # env = gym.wrappers.RecordEpisodeStatistics(env) 
+    # track non-discounted returns automatically
+    env = gym.wrappers.RecordEpisodeStatistics(env) 
 
     # mask observation space
     if mask:
@@ -503,7 +522,7 @@ def main() -> None:
         print(f"\nTRAINING AGENT FOR AT LEAST {args.numTrain} STEPS...")
         agent.learn(total_timesteps=args.numTrain,
                     log_interval=5,
-                    progress_bar=True
+                    progress_bar=True,
                     )
    
     # save agent
@@ -513,7 +532,7 @@ def main() -> None:
                   env=args.env_type,
                   load=args.load_agent,
                   agent_type=agent_type,
-                  num_train=args.numTrain
+                  num_train=args.numTrain,
                   )
 
     # test agent
@@ -522,7 +541,8 @@ def main() -> None:
         runManyEpisodes(agent,
                         env,
                         num_episodes=args.numTest,
-                        agent_type=agent_type
+                        agent_type=agent_type,
+                        no_discount=args.no_discount,
                         ) 
 
     print("\nCLOSING WALKERS...\n\n")
