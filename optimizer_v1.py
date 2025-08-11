@@ -99,7 +99,7 @@ def readCommand(argv) -> Namespace:
                         help="Which environment to put agent in (default None).")
     parser.add_argument("--num_timesteps",
                         type=int, default=10000,
-                        metavar="NS", help="Number of timesteps to train for \
+                        metavar="N", help="Number of timesteps to train for \
                                 in each trial (default 10000).")
 
     # return the parsed args
@@ -426,11 +426,27 @@ def main():
     print(f"\tParams:")
     for key, value in trial.params.items():
         print(f"\t\t{key} : {value}")
-    print(f"\tUser attrs:")
-    for key, value in trial.user_attrs.items():
-        print(f"\t\t{key} : {value}")
+    # print(f"\tUser attrs:")
+    # for key, value in trial.user_attrs.items():
+    #     print(f"\t\t{key} : {value}")
 
+    # add std out that identifies the agent and env types
+    # read in the options from the command line
+    args = readCommand(sys.argv[1:])
+
+    # user must specify an agent
+    if args.agent_type is None:
+        raise Exception("Must specify an agent to create.")
+
+    # user must specify an environment
+    if args.env_type is None:
+        raise Exception("Must specify an environment to create.")
+
+    print(f"AGENT TYPE: {args.agent_type}")
+    print(f"ENV TYPE: {args.env_type}")
     print("\n\n")
 
 if __name__ == "__main__":
+
+    # run the main program
     main()

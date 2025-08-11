@@ -9,6 +9,7 @@ from gymnasium.spaces import Box
 
 # parser stuff
 import argparse 
+from argparse import Namespace
 import sys 
 
 # stable_baselines3 (and contrib) agents and noise
@@ -76,7 +77,7 @@ class StateMaskingWrapper(gym.ObservationWrapper):
         """
         return obs[self.keep_mask]
 
-def readCommand(argv) -> list:
+def readCommand(argv) -> Namespace:
     """
     Reads in command line options that set
     the environment and the agent.
