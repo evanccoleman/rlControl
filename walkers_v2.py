@@ -360,7 +360,6 @@ def createAgent(new_agent: str = None,
                      action_noise=action_noise,
                      **param_settings,
                      )
-        print(param_settings["action_noise_sigma"])
         agent_type = "ddpg"
 
     elif new_agent == "td3":

@@ -5,8 +5,10 @@ Packages needed:
 - stable-baselines3
 - "stable-baselines3[extra]"
 - sb3-contrib
+- optuna
+- pytorch
 
-Environments implemented:
+Environments used:
 - Ant-v5
 - HalfCheetah-v5
 - Hopper-v5
@@ -17,4 +19,10 @@ Agents implemented so far:
 - TD3
 - SAC
 - RPPO 
-- CustomDDPG (compiles, does not work)
+- CustomDDPG (compiles, does not work, commented out)
+
+v1 vs v2 files:
+walker_v1 -> uses default hyperparameters 
+walker_v2 -> uses hyperparameters from a file
+optimizer_v1 -> hyperparameters printed to std out
+optimizer_v2 -> hyperparameters printed to output file
