@@ -86,7 +86,7 @@ def readCommand(argv) -> Namespace:
                     - Runs the optimizer on an ant ppo agent
                       where timesteps per trial is 10000 (default)
                       and the number of trials to optimize for is
-                      10000 (hard-coded).
+                      10000 (default).
     """
 
     # create argument parser
@@ -291,15 +291,8 @@ def objective(trial: optuna.Trial) -> float:
     """
     
     # read in the options from the command line
+    # potential errors in option parsing handled in main()
     args = readCommand(sys.argv[1:])
-
-    # user must specify an agent
-    if args.agent_type is None:
-        raise Exception("Must specify an agent to create.")
-
-    # user must specify an environment
-    if args.env_type is None:
-        raise Exception("Must specify an environment to create.")
 
     # create environment
     try:

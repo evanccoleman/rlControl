@@ -295,7 +295,31 @@ def readParamsFile(params_file: str = None) -> dict:
     of keywords to be unpacked later.
     """
 
-    print(params_file)
+    param_settings = {}
+    count_delimiters = 0
+    with open(params_file, mode="r", encoding="utf-8") as inFile:
+
+        # loop through each line of the file
+        for line in inFile:
+
+            # skip over info before the first two delimiters "*****"
+            if count_delimiters != 2:
+                if line.strip() == "*****":
+                    count_delimiters += 1
+
+            # start reading parameters
+            else:
+                line = line.strip()
+                param = line.split(" : ")
+
+                # type cast numbers
+                if "." in param[1]:
+                    param[1] = float(param[1])
+                else:
+                    param[1] = int(param[1])
+                param_settings.update({param[0]: param[1]})
+
+    return param_settings
 
 def createAgent(new_agent: str = None,
                 load_agent: str = None,
@@ -313,12 +337,13 @@ def createAgent(new_agent: str = None,
     agent = None        # store agent to return here
     agent_type = None   # store type of agent here
 
-    params = readParamsFile(params_file)
-    
+    param_settings = readParamsFile(params_file)
+
     # create a new agent with the given hyperparameters
     if new_agent == "ppo":
         print("\nCREATING NEW PPO AGENT...\n")
         agent = PPO("MlpPolicy", env, verbose=1,
+                    **param_settings,
                     )
         agent_type = "ppo"
 
@@ -327,11 +352,15 @@ def createAgent(new_agent: str = None,
         # noise objects for DDPG
         n_actions = env.action_space.shape[-1]
         action_noise = NormalActionNoise(mean=np.zeros(n_actions),
-                                         sigma=0.1*np.ones(n_actions)
+                                         sigma=param_settings["action_noise_sigma"]*np.ones(n_actions),
                                          )
+        del param_settings["action_noise_sigma"]
+
         agent = DDPG("MlpPolicy", env, verbose=1,
                      action_noise=action_noise,
+                     **param_settings,
                      )
+        print(param_settings["action_noise_sigma"])
         agent_type = "ddpg"
 
     elif new_agent == "td3":
@@ -339,22 +368,27 @@ def createAgent(new_agent: str = None,
         # noise objects for DDPG
         n_actions = env.action_space.shape[-1]
         action_noise = NormalActionNoise(mean=np.zeros(n_actions),
-                                         sigma=0.1*np.ones(n_actions)
+                                         sigma=param_settings["action_noise_sigma"]*np.ones(n_actions),
                                          )
+        del param_settings["action_noise_sigma"]
+
         agent = TD3("MlpPolicy", env, verbose=1,
                     action_noise=action_noise,
+                    **param_settings,
                     )
         agent_type = "td3"
 
     elif new_agent == "sac":
         print("\nCREATING NEW SAC AGENT...\n")
         agent = SAC("MlpPolicy", env, verbose=1,
+                    **param_settings,
                     )
         agent_type = "sac"
 
     elif new_agent == "rppo":
         print("\nCREATING NEW RPPO AGENT...\n")
         agent = RecurrentPPO("MlpLstmPolicy", env, verbose=1,
+                             **param_settings,
                              )
         agent_type = "rppo"
         
