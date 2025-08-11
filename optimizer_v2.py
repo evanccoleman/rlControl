@@ -385,34 +385,26 @@ def objective(trial: optuna.Trial) -> float:
     # evaluate performance
     return eval_callback.last_mean_reward
 
-def saveParams(study: optuna.Study):
+def saveParams(study: optuna.Study,
+               agent_type: str = None,
+               env_type: str = None,
+               ):
     """
     Saves the parameters found to an output file.
     """
-
-    # read in the options from the command line
-    args = readCommand(sys.argv[1:])
-
-    # user must specify an agent
-    if args.agent_type is None:
-        raise Exception("Must specify an agent to create.")
-
-    # user must specify an environment
-    if args.env_type is None:
-        raise Exception("Must specify an environment to create.")
 
     # make save file directory if it does not exist
     pathlib.Path("paramFiles/").mkdir(exist_ok=True)
     
     # name the output file
-    agent_str = args.agent_type.lower()
-    env_str = args.env_type.split("-")[0].lower()
+    agent_str = agent_type.lower()
+    env_str = env_type.split("-")[0].lower()
     outputFile = f"paramFiles/{agent_str}_{env_str}"
     print(f"THE NAME OF THE FILE IS: {outputFile}")
 
     with open(outputFile, mode="w", encoding="utf-8") as outFile:
-        outFile.write(f"AGENT TYPE : {args.agent_type}\n")
-        outFile.write(f"ENV TYPE : {args.env_type}\n")
+        outFile.write(f"AGENT TYPE : {agent_type}\n")
+        outFile.write(f"ENV TYPE : {env_type}\n")
         outFile.write("\n")
         outFile.write(f"Number of finished trials : {len(study.trials)}\n")
         outFile.write(f"Value of best trial : {study.best_trial.value}\n")
@@ -443,6 +435,14 @@ def main():
 
     # read in the options from the command line
     args = readCommand(sys.argv[1:])
+    
+    # user must specify an agent
+    if args.agent_type is None:
+        raise Exception("Must specify an agent to create.")
+
+    # user must specify an environment
+    if args.env_type is None:
+        raise Exception("Must specify an environment to create.")
 
     # create sampler and pruner
     sampler = TPESampler(n_startup_trials=5)
@@ -462,7 +462,12 @@ def main():
 
     # write results as std out to a file
     print(f"\n\nSAVING RESULTS TO A FILE...")
-    saveParams(study)
+    saveParams(study,
+               agent_type=args.agent_type,
+               env_type=args.env_type,
+               )
+
+    print("\n\n")
 
 if __name__ == "__main__":
 
