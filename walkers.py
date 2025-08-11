@@ -19,11 +19,6 @@ from sb3_contrib import RecurrentPPO
 # custom agents
 # from custom_ddpg import CustomDDPG, ActionNormalizer
 
-# constants
-# if masking the obs space to create a POMDP,
-# mask the following indices
-INDICES_TO_MASK = [0]
-
 class StateMaskingWrapper(gym.ObservationWrapper):
     """
     Wrapper that masks (removes) specific indixes from a
@@ -139,11 +134,12 @@ def readCommand(argv) -> list:
                         help="Whether to render env (default False, \
                                 True when option is present).")
     parser.add_argument("-m", "--mask_indices",
-                        action="store_true",
-                        help="Whether to mask indices in the \
+                        type=int, default=None,
+                        metavar="M", help="Whether to mask indices in the \
                                 observation space and make the env \
-                                a POMDP (default False, True when \
-                                option is present).")
+                                a POMDP (default None). If masking, give an \
+                                integer, and all observations up to that index \
+                                (exclusive) will be removed.")
     parser.add_argument("--no_discount",
                         action="store_true",
                         help="Whether to return discounted rewards \
@@ -447,10 +443,14 @@ def saveAgent(agent=None,
 
 def createEnv(env_type: str,
               quiet: bool,
-              mask: bool, 
+              num_masks: int, 
               ):
     """
     Creates a gymnasium env.
+
+    If masking some observations to artifically
+    create a POMDP, a list of indices to mask is 
+    created using num_masks.
     """
     env = None
 
@@ -463,11 +463,19 @@ def createEnv(env_type: str,
     # track non-discounted returns automatically
     env = gym.wrappers.RecordEpisodeStatistics(env) 
 
+    # debug print for masking
+    # print(env.observation_space.shape)
+
     # mask observation space
-    if mask:
+    if num_masks is not None:
         env = StateMaskingWrapper(env,
-                                  indices_to_mask=INDICES_TO_MASK,
+                                  indices_to_mask=np.arange(num_masks),
                                   )
+
+    # debug print for masking
+    # obs, info = env.reset()
+    # print(obs.shape)
+    # exit()
 
     return env
 
@@ -500,7 +508,7 @@ def main() -> None:
     print(f"\n\nCREATING ENVIRONMENT IN {args.env_type}...")
     env = createEnv(env_type=args.env_type,
                     quiet=args.quiet,
-                    mask=args.mask_indices,
+                    num_masks=args.mask_indices,
                     )
 
     # create new agent and remember agent type
