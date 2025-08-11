@@ -26,6 +26,9 @@ from optuna.pruners import MedianPruner
 from optuna.samplers import TPESampler
 import torch
 
+# check if directories exist
+import pathlib
+
 class TrialEvalCallback(EvalCallback):
     """
     Callback used for evaluating and reporting a trial.
@@ -394,19 +397,24 @@ def saveParams(study: optuna.Study):
     if args.env_type is None:
         raise Exception("Must specify an environment to create.")
 
+    # make save file directory if it does not exist
+    pathlib.Path("paramFiles/").mkdir(exist_ok=True)
+    
     # name the output file
-    outputFile = f"paramFiles/{args.agent_type}_{args.env_type}"
+    agent_str = args.agent_type.lower()
+    env_str = args.env_type.split("-")[0].lower()
+    outputFile = f"paramFiles/{agent_str}_{env_str}"
 
     with open(outputFile, mode="w", encoding="utf-8") as outFile:
-        outFile.write(f"AGENT TYPE : {args.agent_type}")
-        outfile.write(f"ENV TYPE : {args.env_type}")
-        outfile.write("\n")
-        outfile.write(f"Number of finished trials : {len(study.trials)}")
-        outfile.write(f"Value of best trial : {study.best_trial.value}")
-        outfile.write("\n")
-        outfile.write(f"...PARAMS...")
+        outFile.write(f"AGENT TYPE : {args.agent_type}\n")
+        outFile.write(f"ENV TYPE : {args.env_type}\n")
+        outFile.write("\n")
+        outFile.write(f"Number of finished trials : {len(study.trials)}\n")
+        outFile.write(f"Value of best trial : {study.best_trial.value}\n")
+        outFile.write("\n")
+        outFile.write(f"...PARAMS...\n")
         for key, value in study.best_trial.params.items():
-            outFile.write(f"{key} : {value}")
+            outFile.write(f"{key} : {value}\n")
     
 def main():
     """
@@ -443,7 +451,7 @@ def main():
 
     # optimize the hyperparameters
     try:
-        study.optimize(objective, n_trials=10000)
+        study.optimize(objective, n_trials=100)
     except KeyboardInterrupt:
         pass
 
