@@ -104,6 +104,10 @@ def readCommand(argv) -> Namespace:
                         type=int, default=10000,
                         metavar="N", help="Number of timesteps to train for \
                                 in each trial (default 10000).")
+    parser.add_argument("--num_trials",
+                        type=int, default=10000,
+                        metavar="N", help="Number of trials to optimize \
+                                for (default 10000).")
 
     # return the parsed args
     return parser.parse_args()
@@ -404,6 +408,7 @@ def saveParams(study: optuna.Study):
     agent_str = args.agent_type.lower()
     env_str = args.env_type.split("-")[0].lower()
     outputFile = f"paramFiles/{agent_str}_{env_str}"
+    print(f"THE NAME OF THE FILE IS: {outputFile}")
 
     with open(outputFile, mode="w", encoding="utf-8") as outFile:
         outFile.write(f"AGENT TYPE : {args.agent_type}\n")
@@ -436,8 +441,8 @@ def main():
     https://github.com/optuna/optuna-examples/blob/main/rl/sb3_simple.py#L79
     """
 
-    # set pytorch num threads to 1 for faster training
-    torch.set_num_threads(1)
+    # read in the options from the command line
+    args = readCommand(sys.argv[1:])
 
     # create sampler and pruner
     sampler = TPESampler(n_startup_trials=5)
@@ -451,12 +456,12 @@ def main():
 
     # optimize the hyperparameters
     try:
-        study.optimize(objective, n_trials=100)
+        study.optimize(objective, n_trials=args.num_trials)
     except KeyboardInterrupt:
         pass
 
     # write results as std out to a file
-    print(f"SAVING RESULTS TO A FILE...")
+    print(f"\n\nSAVING RESULTS TO A FILE...")
     saveParams(study)
 
 if __name__ == "__main__":
