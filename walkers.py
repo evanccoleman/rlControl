@@ -122,11 +122,11 @@ def readCommand(argv) -> Namespace:
                         help="Which environment to put agent in.")
 
     # options for training and testing
-    parser.add_argument("-i", "--numTrain",
+    parser.add_argument("-i", "--num_train",
                         type=int, default=0,
                         metavar="I", help="The number of steps to \
                                 train for (default 0).")
-    parser.add_argument("-k", "--numTest",
+    parser.add_argument("-k", "--num_test",
                         type=int, default=0,
                         metavar="K", help="The number of episodes to \
                                 test for (default 0).")
@@ -527,9 +527,9 @@ def main() -> None:
 #        env = ActionNormalizer(env)
 
     # train agent
-    if args.numTrain > 0:
-        print(f"\nTRAINING AGENT FOR AT LEAST {args.numTrain} STEPS...")
-        agent.learn(total_timesteps=args.numTrain,
+    if args.num_train > 0:
+        print(f"\nTRAINING AGENT FOR AT LEAST {args.num_train} STEPS...")
+        agent.learn(total_timesteps=args.num_train,
                     log_interval=5,
                     progress_bar=True,
                     )
@@ -541,15 +541,15 @@ def main() -> None:
                   env=args.env_type,
                   load=args.load_agent,
                   agent_type=agent_type,
-                  num_train=args.numTrain,
+                  num_train=args.num_train,
                   )
 
     # test agent
-    if args.numTest > 0:
-        print(f"\nTESTING AGENT FOR {args.numTest} EPISODES...")
+    if args.num_test > 0:
+        print(f"\nTESTING AGENT FOR {args.num_test} EPISODES...")
         runManyEpisodes(agent,
                         env,
-                        num_episodes=args.numTest,
+                        num_episodes=args.num_test,
                         agent_type=agent_type,
                         no_discount=args.no_discount,
                         ) 
