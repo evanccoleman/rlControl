@@ -405,11 +405,10 @@ def saveParams(study: optuna.Study,
     with open(outputFile, mode="w", encoding="utf-8") as outFile:
         outFile.write(f"AGENT TYPE : {agent_type}\n")
         outFile.write(f"ENV TYPE : {env_type}\n")
-        outFile.write("\n")
+        outFile.write("*****\n")
         outFile.write(f"Number of finished trials : {len(study.trials)}\n")
         outFile.write(f"Value of best trial : {study.best_trial.value}\n")
-        outFile.write("\n")
-        outFile.write(f"...PARAMS...\n")
+        outFile.write("*****\n")
         for key, value in study.best_trial.params.items():
             outFile.write(f"{key} : {value}\n")
     

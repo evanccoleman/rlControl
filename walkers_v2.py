@@ -148,6 +148,10 @@ def readCommand(argv) -> Namespace:
                                 when option is present).")
 
     # options for agent hyperparameters
+    parser.add_argument("-p", "--params_file",
+                        type=str, default=None,
+                        metavar="P", help="Name of the file to load from for a new \
+                                agent's hyperparameter settings")
     parser.add_argument("--alpha",
                         type=int, default=0.001,
                         metavar="A", help="The learning rate (default 0.001).")
@@ -284,13 +288,19 @@ def runManyEpisodes(agent,
     print(f"\nTESTING PERFORMANCE FOR {num_episodes} EPISODES...")
     print(f"avg reward : {avg_reward:.3f}")
 
+def readParamsFile(params_file: str = None) -> dict:
+    """
+    Parses the hyperparameter settings from
+    the given file and puts them in a dictionary
+    of keywords to be unpacked later.
+    """
+
+    print(params_file)
+
 def createAgent(new_agent: str = None,
                 load_agent: str = None,
                 env=None,
-                alpha: int = None,
-                gamma: int = None,
-                buffer_size: int = None,
-                batch_size: int = None,
+                params_file: str = None,
                 ) -> tuple: 
     """
     Returns a tuple of (agent, agent_type) where an agent is
@@ -303,13 +313,12 @@ def createAgent(new_agent: str = None,
     agent = None        # store agent to return here
     agent_type = None   # store type of agent here
 
+    params = readParamsFile(params_file)
+    
     # create a new agent with the given hyperparameters
     if new_agent == "ppo":
         print("\nCREATING NEW PPO AGENT...\n")
         agent = PPO("MlpPolicy", env, verbose=1,
-                    learning_rate=alpha,
-                    gamma=gamma,
-                    batch_size=batch_size,
                     )
         agent_type = "ppo"
 
@@ -322,10 +331,6 @@ def createAgent(new_agent: str = None,
                                          )
         agent = DDPG("MlpPolicy", env, verbose=1,
                      action_noise=action_noise,
-                     learning_rate=alpha,
-                     gamma=gamma,
-                     batch_size=batch_size,
-                     buffer_size=buffer_size,
                      )
         agent_type = "ddpg"
 
@@ -338,41 +343,24 @@ def createAgent(new_agent: str = None,
                                          )
         agent = TD3("MlpPolicy", env, verbose=1,
                     action_noise=action_noise,
-                    learning_rate=alpha,
-                    gamma=gamma,
-                    batch_size=batch_size,
-                    buffer_size=buffer_size,
                     )
         agent_type = "td3"
 
     elif new_agent == "sac":
         print("\nCREATING NEW SAC AGENT...\n")
         agent = SAC("MlpPolicy", env, verbose=1,
-                    learning_rate=alpha,
-                    gamma=gamma,
-                    batch_size=batch_size,
-                    buffer_size=buffer_size,
                     )
         agent_type = "sac"
 
     elif new_agent == "rppo":
         print("\nCREATING NEW RPPO AGENT...\n")
         agent = RecurrentPPO("MlpLstmPolicy", env, verbose=1,
-                             learning_rate=alpha,
-                             gamma=gamma,
-                             batch_size=batch_size,
-
                              )
         agent_type = "rppo"
         
 #    elif new_agent == "customddpg":
 #        print("\nCREATING NEW CUSTOMDDPG AGENT...\n")
-#        agent = CustomDDPG(env=env,
-#                           learning_rate=alpha,
-#                           gamma=gamma,
-#                           batch_size=batch_size,
-#                           buffer_size=buffer_size,
-#                           )
+#        agent = CustomDDPG(env=env)
 #        agent_type = "customddpg"
 
     # load agent in from zip file as is
@@ -492,6 +480,10 @@ def main() -> None:
     # auto-convert new_agent to be lowercase
     if args.new_agent is not None:
         args.new_agent = args.new_agent.lower()
+        # another error check
+        if args.params_file is None:
+            raise Exception("Must specify a file of hyperparameter settings \
+                    when creating a new agent.")
 
     # user must specify an agent
     if (args.new_agent is None) and (args.load_agent is None):
@@ -516,10 +508,7 @@ def main() -> None:
     agent, agent_type = createAgent(new_agent=args.new_agent,
                                     load_agent=args.load_agent,
                                     env=env,
-                                    alpha=args.alpha,
-                                    gamma=args.gamma,
-                                    buffer_size=args.buffer_size,
-                                    batch_size=args.batch_size
+                                    params_file=args.params_file,
                                     )
 
 #    # add action normalizer wrapper to env if agent is custom ddpg
