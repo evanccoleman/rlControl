@@ -18,62 +18,8 @@ from stable_baselines3 import PPO, DDPG, SAC, TD3
 from stable_baselines3.common.noise import NormalActionNoise
 from sb3_contrib import RecurrentPPO
 
-class StateMaskingWrapper(gym.ObservationWrapper):
-    """
-    Wrapper that masks (removes) specific indixes from a
-    Box observation space.
-
-    Useful for inducing partial observability in standard
-    MDP environments by withholding state information
-    from the agent.
-    """
-
-    def __init__(self,
-                 env: gym.Env,
-                 indices_to_mask: list,
-                 ):
-        """
-        Initialize a StateMaskingWrapper.
-        """
-
-        super().__init__(env)
-
-        # check if obs space is Box
-        if not isinstance(env.observation_space, Box):
-            raise TypeError(f"StateMaskingWrapper only supports Box \
-                    observation spaces but got \
-                    {type(env.observation_space)}") 
-
-        # remove duplicate indices and sort biggest to smallest
-        self.indices_to_mask = sorted(list(set(indices_to_mask)), reverse=True)
-        self.original_obs_space = env.observation_space
-
-        # validate indices
-        # assumes the original obs space is a 1D array
-        for idx in self.indices_to_mask:
-            if not 0 <= idx < self.original_obs_space.shape[0]:
-                raise ValueError(f"Index {idx} is out of bounds for \
-                        observation space shape \
-                        {self.original_obs_space.shape}")
-
-        # create a mask for keeping elements
-        self.keep_mask = np.ones(self.original_obs_space.shape,
-                                 dtype=bool)
-        self.keep_mask[self.indices_to_mask] = False
-
-        # modify the observation space
-        new_low = self.original_obs_space.low[self.keep_mask]
-        new_high = self.original_obs_space.high[self.keep_mask]
-        self.observation_space = Box(low=new_low,
-                                     high=new_high,
-                                     dtype=self.original_obs_space.dtype,
-                                     )
-
-    def observation(self, obs: np.ndarray) -> np.ndarray:
-        """
-        Applies the mask to the observation.
-        """
-        return obs[self.keep_mask]
+# custom statemaskingwrapper
+from statemaskingwrapper import StateMaskingWrapper
 
 def getMovingAvgs(arr, window, convolution_mode):
      """
@@ -87,6 +33,7 @@ def getMovingAvgs(arr, window, convolution_mode):
 
 def getPerformancePlots(envs: dict = None,
                         env_type: str = None,
+                        is_masking: bool = False,
                         roll_length: int = 0,
                         ):
     """
@@ -464,8 +411,14 @@ def main() -> None:
             env.close()
 
     # create a plot of the env performances
+    is_masking = None
+    if args.mask_indices is None:
+        is_masking = False
+    else:
+        is_masking = True
     getPerformancePlots(envs=five_envs,
                         env_type=args.env_type,
+                        is_masking=is_masking,
                         roll_length=args.roll_length,
                         )
 
