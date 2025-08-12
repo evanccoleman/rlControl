@@ -1,4 +1,4 @@
-# test_walkers.py
+# getgraphs.py
 
 # good ol' numpy and plt
 import numpy as np
@@ -130,10 +130,10 @@ def readCommand(argv) -> Namespace:
     the environment and the agent.
     """
 
-    # instructions for how to run test_walkers.py found using -h
+    # instructions for how to run getgraphs.py found using -h
     usage_str = """
-    USAGE:      python test_walkers.py <options>
-    EXAMPLES:   (1) python test_walkers.py -l test_agents/ant_env \
+    USAGE:      python getgraphs.py <options>
+    EXAMPLES:   (1) python getgraphs.py -l test_agents/ant_env \
             -env Ant-v5 -k 10 -q -roll 10
                     - loads any agents in the ant_env file into \
                             Ant-v5 environments and tests them in \
@@ -382,7 +382,7 @@ def createEnv(env_type: str,
 
 def main() -> None:
     """
-    Runs test_walkers.py
+    Runs getgraphs.py
     """
 
     # read in the options from the command line
