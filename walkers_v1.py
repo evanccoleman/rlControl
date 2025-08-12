@@ -1,4 +1,4 @@
-# walkers.py
+# walkers_v1.py
 
 # good ol' numpy
 import numpy as np
@@ -83,15 +83,15 @@ def readCommand(argv) -> Namespace:
     the environment and the agent.
     """
 
-    # instructions for how to run walkers.py found using -h
+    # instructions for how to run walkers_v1.py found using -h
     usage_str = """
-    USAGE:      python walkers.py <options>
-    EXAMPLES:   (1) python walkers.py -n ppo -env Ant-v5 -i 10000 \
+    USAGE:      python walkers_v1.py <options>
+    EXAMPLES:   (1) python walkers_v1.py -n ppo -env Ant-v5 -i 10000 \
             -k 10 -sq
                     - trains ppo agent in Ant-v5 for 10000 steps and \
                             tests for 10 episodes
                     - also saves the agent and runs without rendering
-                (2) python walkers.py -l agents_walkers/ppo_ant_10000\
+                (2) python walkers_v1.py -l agents_walkers/ppo_ant_10000\
                         .zip -env Ant-v5 -k 10
                     - loads a ppo agent into Ant-v5 and tests for 10 \
                             episodes with rendering
@@ -483,7 +483,7 @@ def createEnv(env_type: str,
 
 def main() -> None:
     """
-    Runs walkers.py
+    Runs walkers_v1.py
     """
 
     # read in the options from the command line

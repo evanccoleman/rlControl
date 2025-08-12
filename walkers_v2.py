@@ -1,4 +1,4 @@
-# walkers.py
+# walkers_v2.py
 
 # good ol' numpy
 import numpy as np
@@ -83,15 +83,15 @@ def readCommand(argv) -> Namespace:
     the environment and the agent.
     """
 
-    # instructions for how to run walkers.py found using -h
+    # instructions for how to run walkers_v2.py found using -h
     usage_str = """
-    USAGE:      python walkers.py <options>
-    EXAMPLES:   (1) python walkers.py -n ppo -env Ant-v5 -i 10000 \
+    USAGE:      python walkers_v2.py <options>
+    EXAMPLES:   (1) python walkers_v2.py -n ppo -env Ant-v5 -i 10000 \
             -k 10 -sq
                     - trains ppo agent in Ant-v5 for 10000 steps and \
                             tests for 10 episodes
                     - also saves the agent and runs without rendering
-                (2) python walkers.py -l agents_walkers/ppo_ant_10000\
+                (2) python walkers_v2.py -l agents_walkers/ppo_ant_10000\
                         .zip -env Ant-v5 -k 10
                     - loads a ppo agent into Ant-v5 and tests for 10 \
                             episodes with rendering
@@ -141,11 +141,6 @@ def readCommand(argv) -> Namespace:
                                 a POMDP (default None). If masking, give an \
                                 integer, and all observations up to that index \
                                 (exclusive) will be removed.")
-    parser.add_argument("--no_discount",
-                        action="store_true",
-                        help="Whether to return discounted rewards \
-                                during testing (default False, True \
-                                when option is present).")
 
     # options for agent hyperparameters
     parser.add_argument("-p", "--params_file",
@@ -169,9 +164,24 @@ def readCommand(argv) -> Namespace:
     # return the parsed arguments
     return parser.parse_args()
 
+def turnOffTrainingMode(agent):
+    """
+    Sets the agent's learning rate and action noise 
+    (if any) to 0.
+    """
+    agent.learning_rate = 0
+    agent.action_noise = None
+
+def restoreTrainingMode(agent, alpha_and_noise):
+    """
+    Restores the agent's learning rate and action noise
+    (if any) to the originals.
+    """
+    agent.learning_rate = alpha_and_noise[0]
+    agent.action_noise = alpha_and_noise[1]
+
 def runEpisode(agent,
                env: gym.Env,
-               no_discount: bool = False,
                ) -> int:
     """
     Runs a single episode for an agent without LSTM.
@@ -201,14 +211,10 @@ def runEpisode(agent,
         total_discount *= agent.gamma
 
     # return episode returns
-    if no_discount:
-        return info["episode"]["r"]
-    else:
-        return episode_rewards 
+    return info["episode"]["r"]
 
 def runEpisodeLSTM(agent,
                    env: gym.Env,
-                   no_discount: bool = False,
                    ) -> int:
     """
     Runs a single episode for an agent with LSTM.
@@ -244,16 +250,12 @@ def runEpisodeLSTM(agent,
         total_discount *= agent.gamma
 
     # return episode returns
-    if no_discount:
-        return info["episode"]["r"]
-    else:
-        return episode_rewards 
+    return info["episode"]["r"]
 
 def runManyEpisodes(agent,
                     env,
                     num_episodes: int = 0,
                     agent_type: str = None,
-                    no_discount: bool = False,
                     ) -> None: 
     """
     Runs all the episodes for testing mode.
@@ -261,6 +263,10 @@ def runManyEpisodes(agent,
     """
 
     print(f"\nBEGINNING TESTING FOR {num_episodes} EPISODES...")
+
+    # turn off training mode and begin exploitation
+    training_settings = (agent.learning_rate, agent.action_noise)
+    turnOffTrainingMode(agent)
 
     # track episodic returns
     rewards = []
@@ -272,14 +278,15 @@ def runManyEpisodes(agent,
 
         # decide whether to run LSTM episode
         if agent_type == "rppo":
-            episode_rewards = runEpisodeLSTM(agent, env,
-                                             no_discount=no_discount)
+            episode_rewards = runEpisodeLSTM(agent, env)
         else:
-            episode_rewards = runEpisode(agent, env,
-                                         no_discount=no_discount)
+            episode_rewards = runEpisode(agent, env)
 
         # add episode returns to running list
         rewards.append(episode_rewards)
+
+    # restore training mode
+    restoreTrainingMode(agent, training_settings)
 
     # calculate performance
     avg_reward = np.mean(rewards)
@@ -337,12 +344,18 @@ def createAgent(new_agent: str = None,
     agent = None        # store agent to return here
     agent_type = None   # store type of agent here
 
-    param_settings = readParamsFile(params_file)
+    # get settings if creating new agent
+    param_settings = None
+    if new_agent is not None:
+        param_settings = readParamsFile(params_file)
 
     # create a new agent with the given hyperparameters
     if new_agent == "ppo":
         print("\nCREATING NEW PPO AGENT...\n")
+        n_steps = 2 ** param_settings["n_steps_exponent"]
+        del param_settings["n_steps_exponent"]
         agent = PPO("MlpPolicy", env, verbose=1,
+                    n_steps=n_steps,
                     **param_settings,
                     )
         agent_type = "ppo"
@@ -504,19 +517,11 @@ def createEnv(env_type: str,
 
 def main() -> None:
     """
-    Runs walkers.py
+    Runs walkers_v2.py
     """
 
     # read in the options from the command line
     args = readCommand(sys.argv[1:])
-
-    # auto-convert new_agent to be lowercase
-    if args.new_agent is not None:
-        args.new_agent = args.new_agent.lower()
-        # another error check
-        if args.params_file is None:
-            raise Exception("Must specify a file of hyperparameter settings \
-                    when creating a new agent.")
 
     # user must specify an agent
     if (args.new_agent is None) and (args.load_agent is None):
@@ -525,6 +530,15 @@ def main() -> None:
     # user cannot specify more than one agent
     if args.new_agent and args.load_agent:
         raise Exception("Can only run program with one agent.")
+
+    # auto-convert new_agent to be lowercase
+    if args.new_agent is not None:
+        print(args.new_agent)
+        args.new_agent = args.new_agent.lower()
+        # another error check
+        if args.params_file is None:
+            raise Exception("Must specify a file of hyperparameter settings \
+                    when creating a new agent.")
 
     # user must specify an environment
     if args.env_type is None:
@@ -560,7 +574,7 @@ def main() -> None:
     if args.save_agent:
         print(f"\nSAVING AGENT...")
         saveAgent(agent=agent,
-                  env=args.env_type,
+                  env_type=args.env_type,
                   load=args.load_agent,
                   agent_type=agent_type,
                   num_train=args.num_train,
@@ -573,7 +587,6 @@ def main() -> None:
                         env,
                         num_episodes=args.num_test,
                         agent_type=agent_type,
-                        no_discount=args.no_discount,
                         ) 
 
     print("\nCLOSING WALKERS...\n\n")
