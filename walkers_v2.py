@@ -189,8 +189,6 @@ def runEpisode(agent,
     """
 
     obs, info = env.reset() # reset env
-    episode_rewards = 0 # track episode returns
-    total_discount = 1
     is_episode_over = False # loop control variable
 
     # take actions and update agent until episode termination
@@ -206,10 +204,6 @@ def runEpisode(agent,
         obs = next_obs
         is_episode_over = terminated or trunc
 
-        # update episode returns
-        episode_rewards += reward * total_discount
-        total_discount *= agent.gamma
-
     # return episode returns
     return info["episode"]["r"]
 
@@ -223,8 +217,6 @@ def runEpisodeLSTM(agent,
 
     obs, info = env.reset() # reset env
     episode_rewards = 0 # track episode returns
-    total_discount = 1
-    is_episode_over = False # loop control variable
     lstm_states = None # track hidden state of LSTM stuff
     episode_starts = np.array([True]) # helps reset lstm_states
 
@@ -244,10 +236,6 @@ def runEpisodeLSTM(agent,
         obs = next_obs
         is_episode_over = terminated or trunc
         episode_starts = np.array([terminated or trunc])
-
-        # update episode returns
-        episode_rewards += reward * total_discount
-        total_discount *= agent.gamma
 
     # return episode returns
     return info["episode"]["r"]
