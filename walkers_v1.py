@@ -165,6 +165,22 @@ def readCommand(argv) -> Namespace:
     # return the parsed arguments
     return parser.parse_args()
 
+def turnOffTrainingMode(agent):
+    """
+    Sets the agent's learning rate and action noise
+    (if any) to 0.
+    """
+    agent.learning_rate = 0
+    agent.action_noise = None
+
+def restoreTrainingMode(agent, alpha_and_noise):
+    """
+    Restores the agent's learning rate and action noise
+    (if any) to the originals.
+    """
+    agent.learning_rate = alpha_and_noise[0]
+    agent.action_noise = alpha_and_noise[1]
+
 def runEpisode(agent,
                env: gym.Env,
                no_discount: bool = False,
@@ -258,6 +274,10 @@ def runManyEpisodes(agent,
 
     print(f"\nBEGINNING TESTING FOR {num_episodes} EPISODES...")
 
+    # turn off training mode and begin exploitation
+    training_settings = (agent.learning_rate, agent.action_noise)
+    turnOffTrainingMode(agent)
+
     # track episodic returns
     rewards = []
 
@@ -276,6 +296,9 @@ def runManyEpisodes(agent,
 
         # add episode returns to running list
         rewards.append(episode_rewards)
+
+    # restore training mode
+    restoreTrainingMode(agent, training_settings)
 
     # calculate performance
     avg_reward = np.mean(rewards)

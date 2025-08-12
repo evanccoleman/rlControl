@@ -18,9 +18,6 @@ from stable_baselines3 import PPO, DDPG, SAC, TD3
 from stable_baselines3.common.noise import NormalActionNoise
 from sb3_contrib import RecurrentPPO
 
-# custom agents
-# from custom_ddpg import CustomDDPG, ActionNormalizer
-
 class StateMaskingWrapper(gym.ObservationWrapper):
     """
     Wrapper that masks (removes) specific indixes from a
@@ -90,14 +87,22 @@ def getMovingAvgs(arr, window, convolution_mode):
 
 def getPerformancePlots(envs: dict = None,
                         env_type: str = None,
+                        roll_length: int,
                         ):
     """
-    Finds the moving average of the
-    episode rewards for each env in the dict.
+    Creates a plot of agent performance (5 subplots)
+    by looping through the envs dictionary.
+    
+    Rewards for x-many episodes are averaged for each 
+    data point on the graph.
+
+    For instance, if k=10000 and roll_length=500,
+    then the 500th point on the plot represents the average
+    of episodes 1-500.
     """
 
     # smooth over a x-episode window
-    rolling_length = 10
+    rolling_length = roll_length
     fig, axs = plt.subplots(ncols=5, figsize=(12, 5))
 
     # create a subplot of agent performance for each env
@@ -128,10 +133,11 @@ def readCommand(argv) -> Namespace:
     usage_str = """
     USAGE:      python test_walkers.py <options>
     EXAMPLES:   (1) python test_walkers.py -l test_agents/ant_env \
-            -env Ant-v5 -k 10 -q
+            -env Ant-v5 -k 10 -q -roll 10
                     - loads any agents in the ant_env file into \
                             Ant-v5 environments and tests them in \
-                            quiet mode for 10 episodes each.
+                            quiet mode for 10 episodes each. The \
+                            rolling length gets set to 10.
     """
 
     # create the argument parser
@@ -152,6 +158,10 @@ def readCommand(argv) -> Namespace:
                         type=int, default=0,
                         metavar="K", help="The number of episodes to \
                                 test for (default 0).")
+    parser.aadd_argument("-roll", "--roll_length",
+                         type=int, default=0,
+                         metavar="R", help="The rolling length in \
+                                 the subplot (default 0).")
     parser.add_argument("-q", "--quiet",
                         action="store_true",
                         help="Whether to render env (default False, \
@@ -385,6 +395,9 @@ def main() -> None:
     if args.env_type is None:
         raise Exception("Must specify an environment to create.")
 
+    if args.roll_length == 0:
+        raise Exception("Must specify a nonzero rolling length.")
+
     # track five envs in a dictionary
     five_envs = {}
 
@@ -426,6 +439,7 @@ def main() -> None:
     # create a plot of the env performances
     getPerformancePlots(envs=five_envs,
                         env_type=args.env_type,
+                        roll_length=args.roll_length,
                         )
 
 
