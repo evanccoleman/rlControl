@@ -122,7 +122,7 @@ def getPerformancePlots(envs: dict = None,
     plt.suptitle(f"Rewards in {env_type}")
     plt.tight_layout()
     env_str = env_type.split("-")[0].lower()
-    plt.savefig(f"{env_str}_graphs.png")
+    plt.savefig(f"graphs/{env_str}_env.png")
 
 def readCommand(argv) -> Namespace:
     """
