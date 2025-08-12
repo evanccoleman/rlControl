@@ -22,7 +22,7 @@ Agents implemented so far:
 - CustomDDPG (compiles, does not work, commented out)
 
 v1 vs v2 files:
-walker_v1 -> uses default hyperparameters 
-walker_v2 -> uses hyperparameters from a file
+walker_v1 -> uses hyperparameters from flags
+walker_v2 -> uses hyperparameters from a file, POMDP 
 optimizer_v1 -> hyperparameters printed to std out
-optimizer_v2 -> hyperparameters printed to output file
+optimizer_v2 -> hyperparameters printed to output file, POMDP
