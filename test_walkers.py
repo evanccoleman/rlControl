@@ -87,7 +87,7 @@ def getMovingAvgs(arr, window, convolution_mode):
 
 def getPerformancePlots(envs: dict = None,
                         env_type: str = None,
-                        roll_length: int,
+                        roll_length: int = 0,
                         ):
     """
     Creates a plot of agent performance (5 subplots)
@@ -118,10 +118,11 @@ def getPerformancePlots(envs: dict = None,
         axs[i].set_xlabel("Episode")
         i += 1
 
-    # display the plot
+    # save the plot
     plt.suptitle(f"Rewards in {env_type}")
     plt.tight_layout()
-    plt.show()
+    env_str = env_type.split("-")[0].lower()
+    plt.savefig(f"{env_str}_graphs.png")
 
 def readCommand(argv) -> Namespace:
     """
@@ -158,7 +159,7 @@ def readCommand(argv) -> Namespace:
                         type=int, default=0,
                         metavar="K", help="The number of episodes to \
                                 test for (default 0).")
-    parser.aadd_argument("-roll", "--roll_length",
+    parser.add_argument("-roll", "--roll_length",
                          type=int, default=0,
                          metavar="R", help="The rolling length in \
                                  the subplot (default 0).")
