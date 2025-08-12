@@ -1,7 +1,8 @@
-# walkers_v2.py
+# test_walkers.py
 
-# good ol' numpy
+# good ol' numpy and plt
 import numpy as np
+import matplotlib.pyplot as plt
 
 # gymnasium
 import gymnasium as gym                     
@@ -77,7 +78,7 @@ class StateMaskingWrapper(gym.ObservationWrapper):
         """
         return obs[self.keep_mask]
 
-def get_moving_avgs(arr, window, convolution_mode):
+def getMovingAvgs(arr, window, convolution_mode):
      """
      Compute moving average to smooth noisy data.
      """
@@ -87,27 +88,33 @@ def get_moving_avgs(arr, window, convolution_mode):
          mode=convolution_mode
      ) / window
 
-def get_performance_plots(env):
+def getPerformancePlots(envs: dict = None,
+                        env_type: str = None,
+                        ):
     """
     Finds the moving average of the
-    episode rewards.
+    episode rewards for each env in the dict.
     """
 
-    # smooth over a 500-episode window
-    rolling_length = 500
-    fig, axs = plt.subplots(ncols=1, figsize=(12, 5))
+    # smooth over a x-episode window
+    rolling_length = 10
+    fig, axs = plt.subplots(ncols=5, figsize=(12, 5))
 
-    # episode rewards (win/loss performance)
-    axs[0].set_title("Episode rewards")
-    reward_moving_average = get_moving_avgs(
-        env.return_queue,
-        rolling_length,
-        "valid"
-    )
-    axs[0].plot(range(len(reward_moving_average)), reward_moving_ave    rage        )
-    axs[0].set_ylabel("Average Reward")
-    axs[0].set_xlabel("Episode")
+    # create a subplot of agent performance for each env
+    i = 0
+    for agent_type, env in envs.items():
+        axs[i].set_title(f"Episode Rewards ({agent_type})")
+        reward_moving_avg = getMovingAvgs(env.return_queue,
+                                         rolling_length,
+                                         "valid",
+                                         )
+        axs[i].plot(range(len(reward_moving_avg)), reward_moving_avg)
+        axs[i].set_ylabel("Average Reward")
+        axs[i].set_xlabel("Episode")
+        i += 1
 
+    # display the plot
+    plt.suptitle(f"Rewards in {env_type}")
     plt.tight_layout()
     plt.show()
 
@@ -117,49 +124,30 @@ def readCommand(argv) -> Namespace:
     the environment and the agent.
     """
 
-    # instructions for how to run walkers_v2.py found using -h
+    # instructions for how to run test_walkers.py found using -h
     usage_str = """
-    USAGE:      python walkers_v2.py <options>
-    EXAMPLES:   (1) python walkers_v2.py -n ppo -env Ant-v5 -i 10000 \
-            -k 10 -sq
-                    - trains ppo agent in Ant-v5 for 10000 steps and \
-                            tests for 10 episodes
-                    - also saves the agent and runs without rendering
-                (2) python walkers_v2.py -l agents_walkers/ppo_ant_10000\
-                        .zip -env Ant-v5 -k 10
-                    - loads a ppo agent into Ant-v5 and tests for 10 \
-                            episodes with rendering
+    USAGE:      python test_walkers.py <options>
+    EXAMPLES:   (1) python test_walkers.py -l test_agents/ant_env \
+            -env Ant-v5 -k 10 -q
+                    - loads any agents in the ant_env file into \
+                            Ant-v5 environments and tests them in \
+                            quiet mode for 10 episodes each.
     """
 
     # create the argument parser
     parser = argparse.ArgumentParser(usage=usage_str)
 
     # options for creating/saving agent and the env
-    parser.add_argument("-n", "--new_agent",
-                        type=str, default=None,
-                        metavar="N", help="The type of new agent to create \
-                                (default None).")
-    parser.add_argument("-l", "--load_agent",
-                        type=str, default=None,
-                        metavar="L", help="Zip file to load agent from \
-                                (default None).")
-    parser.add_argument("-s", "--save_agent",
-                        action="store_true",
-                        help="Whether to save the agent (default False, \
-                                True when option is present). \
-                                If True, a save name is auto-generated \
-                                and the save directory is automatically \
-                                determined. Looks like \
-                                'agents_ant/ppo_ant_10000.zip'.")
+    parser.add_argument("-l", "--load_agents_file",
+                         type=str, default=None,
+                         metavar="L", help="File with names of zip \
+                                 files to load agents from \
+                                 (default None).")
     parser.add_argument("-env", "--env_type",
-                        type=str, default=None,
-                        help="Which environment to put agent in.")
-
+                         type=str, default=None,
+                         help="Which environment to put agent in.")
+ 
     # options for training and testing
-    parser.add_argument("-i", "--num_train",
-                        type=int, default=0,
-                        metavar="I", help="The number of steps to \
-                                train for (default 0).")
     parser.add_argument("-k", "--num_test",
                         type=int, default=0,
                         metavar="K", help="The number of episodes to \
@@ -181,19 +169,6 @@ def readCommand(argv) -> Namespace:
                         type=str, default=None,
                         metavar="P", help="Name of the file to load from for a new \
                                 agent's hyperparameter settings")
-    parser.add_argument("--alpha",
-                        type=int, default=0.001,
-                        metavar="A", help="The learning rate (default 0.001).")
-    parser.add_argument("--gamma",
-                        type=int, default=0.99,
-                        metavar="G", help="The discount factor (default 0.99).")
-    parser.add_argument("--buffer_size",
-                        type=int, default=10**6,
-                        metavar="BUFFER", help="The size of the experience replay \
-                                buffer (default 10^6).")
-    parser.add_argument("--batch_size",
-                        type=int, default=256,
-                        metavar="BATCH", help="The size of minibatches (default 256).")
 
     # return the parsed arguments
     return parser.parse_args()
@@ -223,8 +198,6 @@ def runEpisode(agent,
     """
 
     obs, info = env.reset() # reset env
-    episode_rewards = 0 # track episode returns
-    total_discount = 1
     is_episode_over = False # loop control variable
 
     # take actions and update agent until episode termination
@@ -240,10 +213,6 @@ def runEpisode(agent,
         obs = next_obs
         is_episode_over = terminated or trunc
 
-        # update episode returns
-        episode_rewards += reward * total_discount
-        total_discount *= agent.gamma
-
     # return episode returns
     return info["episode"]["r"]
 
@@ -256,8 +225,6 @@ def runEpisodeLSTM(agent,
     """
 
     obs, info = env.reset() # reset env
-    episode_rewards = 0 # track episode returns
-    total_discount = 1
     is_episode_over = False # loop control variable
     lstm_states = None # track hidden state of LSTM stuff
     episode_starts = np.array([True]) # helps reset lstm_states
@@ -278,10 +245,6 @@ def runEpisodeLSTM(agent,
         obs = next_obs
         is_episode_over = terminated or trunc
         episode_starts = np.array([terminated or trunc])
-
-        # update episode returns
-        episode_rewards += reward * total_discount
-        total_discount *= agent.gamma
 
     # return episode returns
     return info["episode"]["r"]
@@ -329,186 +292,43 @@ def runManyEpisodes(agent,
     print(f"\nTESTING PERFORMANCE FOR {num_episodes} EPISODES...")
     print(f"avg reward : {avg_reward:.3f}")
 
-def readParamsFile(params_file: str = None) -> dict:
-    """
-    Parses the hyperparameter settings from
-    the given file and puts them in a dictionary
-    of keywords to be unpacked later.
-    """
-
-    param_settings = {}
-    count_delimiters = 0
-    with open(params_file, mode="r", encoding="utf-8") as inFile:
-
-        # loop through each line of the file
-        for line in inFile:
-
-            # skip over info before the first two delimiters "*****"
-            if count_delimiters != 2:
-                if line.strip() == "*****":
-                    count_delimiters += 1
-
-            # start reading parameters
-            else:
-                line = line.strip()
-                param = line.split(" : ")
-
-                # type cast numbers
-                if "." in param[1]:
-                    param[1] = float(param[1])
-                else:
-                    param[1] = int(param[1])
-                param_settings.update({param[0]: param[1]})
-
-    return param_settings
-
-def createAgent(new_agent: str = None,
-                load_agent: str = None,
+def loadAgent(agent_to_load: str = None,
                 env=None,
-                params_file: str = None,
                 ) -> tuple: 
     """
-    Returns a tuple of (agent, agent_type) where an agent is
-    created fresh or a pre-existing one is loaded and 
-    the type of agent is stored for program purposes.
+    Loads a pre-trained agent.
+    Returns the agent and the type of agent.
     If the specified agent is not defined, an error is
     raised saying so.
     """
 
-    agent = None        # store agent to return here
-    agent_type = None   # store type of agent here
+    # store agent to return here
+    agent = None 
 
-    # get settings if creating new agent
-    param_settings = None
-    if new_agent is not None:
-        param_settings = readParamsFile(params_file)
+    # determine agent type first
+    agent_type = agent_to_load.split("/")[1].split("_", 1)[0]
 
-    # create a new agent with the given hyperparameters
-    if new_agent == "ppo":
-        print("\nCREATING NEW PPO AGENT...\n")
-        n_steps = 2 ** param_settings["n_steps_exponent"]
-        del param_settings["n_steps_exponent"]
-        agent = PPO("MlpPolicy", env, verbose=1,
-                    n_steps=n_steps,
-                    **param_settings,
-                    )
-        agent_type = "ppo"
-
-    elif new_agent == "ddpg":
-        print("\nCREATING NEW DDPG AGENT...\n")
-        # noise objects for DDPG
-        n_actions = env.action_space.shape[-1]
-        action_noise = NormalActionNoise(mean=np.zeros(n_actions),
-                                         sigma=param_settings["action_noise_sigma"]*np.ones(n_actions),
-                                         )
-        del param_settings["action_noise_sigma"]
-
-        agent = DDPG("MlpPolicy", env, verbose=1,
-                     action_noise=action_noise,
-                     **param_settings,
-                     )
-        agent_type = "ddpg"
-
-    elif new_agent == "td3":
-        print("\nCREATING NEW TD3 AGENT...\n")
-        # noise objects for DDPG
-        n_actions = env.action_space.shape[-1]
-        action_noise = NormalActionNoise(mean=np.zeros(n_actions),
-                                         sigma=param_settings["action_noise_sigma"]*np.ones(n_actions),
-                                         )
-        del param_settings["action_noise_sigma"]
-
-        agent = TD3("MlpPolicy", env, verbose=1,
-                    action_noise=action_noise,
-                    **param_settings,
-                    )
-        agent_type = "td3"
-
-    elif new_agent == "sac":
-        print("\nCREATING NEW SAC AGENT...\n")
-        agent = SAC("MlpPolicy", env, verbose=1,
-                    **param_settings,
-                    )
-        agent_type = "sac"
-
-    elif new_agent == "rppo":
-        print("\nCREATING NEW RPPO AGENT...\n")
-        agent = RecurrentPPO("MlpLstmPolicy", env, verbose=1,
-                             **param_settings,
-                             )
-        agent_type = "rppo"
-        
-#    elif new_agent == "customddpg":
-#        print("\nCREATING NEW CUSTOMDDPG AGENT...\n")
-#        agent = CustomDDPG(env=env)
-#        agent_type = "customddpg"
-
-    # load agent in from zip file as is
+    # actually load in agent now
+    if agent_type == "ppo":
+        print(f"\nLOADING PPO AGENT '{agent_to_load}'...\n")
+        agent = PPO.load(agent_to_load, env=env)
+    elif agent_type == "ddpg":
+        print(f"\nLOADING DDPG AGENT '{agent_to_load}'...\n")
+        agent = DDPG.load(agent_to_load, env=env)
+    elif agent_type == "td3":
+        print(f"\nLOADING TD3 AGENT '{agent_to_load}'...\n")
+        agent = TD3.load(agent_to_load, env=env)
+    elif agent_type == "sac":
+        print(f"\nLOADING SAC AGENT '{agent_to_load}'...\n")
+        agent = SAC.load(agent_to_load, env=env)
+    elif agent_type == "rppo":
+        print(f"\nLOADING RPPO AGENT '{agent_to_load}'...\n")
+        agent = RecurrentPPO.load(agent_to_load, env=env)
     else:
-
-        # determine agent type first
-        agent_type = load_agent.split("/")[1].split("_", 1)[0]
-
-        # actually load in agent now
-        if agent_type == "ppo":
-            print(f"\nLOADING PPO AGENT '{load_agent}'...\n")
-            agent = PPO.load(load_agent, env=env)
-        elif agent_type == "ddpg":
-            print(f"\nLOADING DDPG AGENT '{load_agent}'...\n")
-            agent = DDPG.load(load_agent, env=env)
-        elif agent_type == "td3":
-            print(f"\nLOADING TD3 AGENT '{load_agent}'...\n")
-            agent = TD3.load(load_agent, env=env)
-        elif agent_type == "sac":
-            print(f"\nLOADING SAC AGENT '{load_agent}'...\n")
-            agent = SAC.load(load_agent, env=env)
-        elif agent_type == "rppo":
-            print(f"\nLOADING RPPO AGENT '{load_agent}'...\n")
-            agent = RecurrentPPO.load(load_agent, env=env)
-        else:
-            raise Exception(f"Agent {agent_type} not implemented.")
+        raise Exception(f"Agent {agent_type} not implemented.")
 
     # return tuple
-    return agent, agent_type
-
-def saveAgent(agent=None,
-              env_type: str = None,
-              load: str = None,
-              agent_type: str = None,
-              num_train=None,
-              ) -> None:
-    """
-    Save a loaded agent or a fresh agent and
-    auto-generate the save name according to
-    a pattern like:
-    'agents_ant/ppo_ant_10000.zip'
-    """
-
-    # saving a fresh agent
-    if load is None:
-        # create save name
-        the_env = env_type.split("-")[0]
-        the_env = the_env.lower()
-        save_name = "agents_" + the_env + "/" + \
-                agent_type + "_" + the_env + "_" + str(num_train) + ".zip" 
-
-        print(f"\nSAVING AGENT TO '{save_name}'...")
-        agent.save(save_name)
-
-    # saving a loaded agent
-    else:
-        # update number of steps trained in save name
-        old_num_train = int(load.split("/")[1].split("_")[2].split(".")[0])
-        new_num_train = num_train + old_num_train
-
-        # create save name
-        the_env = env_type.split("-")[0]
-        the_env = the_env.lower()
-        save_name = "agents_" + the_env + "/" + \
-                agent_type + "_" + the_env + "_" + str(new_num_train) + ".zip"
-
-        print(f"\nSAVING AGENT TO '{save_name}'...")
-        agent.save(save_name)
+    return agent, agent_type.upper()
 
 def createEnv(env_type: str,
               quiet: bool,
@@ -551,80 +371,62 @@ def createEnv(env_type: str,
 
 def main() -> None:
     """
-    Runs walkers_v2.py
+    Runs test_walkers.py
     """
 
     # read in the options from the command line
     args = readCommand(sys.argv[1:])
 
     # user must specify an agent
-    if (args.new_agent is None) and (args.load_agent is None):
-        raise Exception("Must specify an agent to create or load.")
+    if args.load_agents_file is None:
+        raise Exception("Must specify an a file of agents to load.")
     
-    # user cannot specify more than one agent
-    if args.new_agent and args.load_agent:
-        raise Exception("Can only run program with one agent.")
-
-    # auto-convert new_agent to be lowercase
-    if args.new_agent is not None:
-        print(args.new_agent)
-        args.new_agent = args.new_agent.lower()
-        # another error check
-        if args.params_file is None:
-            raise Exception("Must specify a file of hyperparameter settings \
-                    when creating a new agent.")
-
     # user must specify an environment
     if args.env_type is None:
         raise Exception("Must specify an environment to create.")
 
-    # create the environment
-    print(f"\n\nCREATING ENVIRONMENT IN {args.env_type}...")
-    env = createEnv(env_type=args.env_type,
-                    quiet=args.quiet,
-                    num_masks=args.mask_indices,
-                    )
+    # track five envs in a dictionary
+    five_envs = {}
 
-    # create new agent and remember agent type
-    agent, agent_type = createAgent(new_agent=args.new_agent,
-                                    load_agent=args.load_agent,
-                                    env=env,
-                                    params_file=args.params_file,
-                                    )
+    # read in five agents and train them in the env
+    with open(args.load_agents_file, mode="r", encoding="utf-8") as inFile:
+        
+        # loop through each line of the file
+        for line in inFile:
 
-#    # add action normalizer wrapper to env if agent is custom ddpg
-#    if agent_type == "customddpg":
-#        env = ActionNormalizer(env)
+            line = line.strip()
 
-    # train agent
-    if args.num_train > 0:
-        print(f"\nTRAINING AGENT FOR AT LEAST {args.num_train} STEPS...")
-        agent.learn(total_timesteps=args.num_train,
-                    log_interval=5,
-                    progress_bar=True,
-                    )
-   
-    # save agent
-    if args.save_agent:
-        print(f"\nSAVING AGENT...")
-        saveAgent(agent=agent,
-                  env_type=args.env_type,
-                  load=args.load_agent,
-                  agent_type=agent_type,
-                  num_train=args.num_train,
-                  )
+            # create the environment
+            print(f"\n\nCREATING ENVIRONMENT IN {args.env_type}...")
+            env = createEnv(env_type=args.env_type,
+                            quiet=args.quiet,
+                            num_masks=args.mask_indices,
+                            )
 
-    # test agent
-    if args.num_test > 0:
-        print(f"\nTESTING AGENT FOR {args.num_test} EPISODES...")
-        runManyEpisodes(agent,
-                        env,
-                        num_episodes=args.num_test,
-                        agent_type=agent_type,
-                        ) 
+            # create new agent and remember agent type
+            agent, agent_type = loadAgent(agent_to_load=line,
+                                          env=env,
+                                          )
 
-    print("\nCLOSING WALKERS...\n\n")
-    env.close()
+            # test agent
+            if args.num_test > 0:
+                print(f"\nTESTING AGENT FOR {args.num_test} EPISODES...")
+                runManyEpisodes(agent,
+                                env,
+                                num_episodes=args.num_test,
+                                agent_type=agent_type,
+                                ) 
+
+            # add the env to the five_envs we're tracking
+            five_envs.update({agent_type: env})
+
+            print("\nCLOSING WALKERS...\n\n")
+            env.close()
+
+    # create a plot of the env performances
+    getPerformancePlots(envs=five_envs,
+                        env_type=args.env_type,
+                        )
 
 
 if __name__ == "__main__":

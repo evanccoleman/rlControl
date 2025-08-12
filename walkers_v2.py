@@ -147,20 +147,7 @@ def readCommand(argv) -> Namespace:
                         type=str, default=None,
                         metavar="P", help="Name of the file to load from for a new \
                                 agent's hyperparameter settings")
-    parser.add_argument("--alpha",
-                        type=int, default=0.001,
-                        metavar="A", help="The learning rate (default 0.001).")
-    parser.add_argument("--gamma",
-                        type=int, default=0.99,
-                        metavar="G", help="The discount factor (default 0.99).")
-    parser.add_argument("--buffer_size",
-                        type=int, default=10**6,
-                        metavar="BUFFER", help="The size of the experience replay \
-                                buffer (default 10^6).")
-    parser.add_argument("--batch_size",
-                        type=int, default=256,
-                        metavar="BATCH", help="The size of minibatches (default 256).")
-
+    
     # return the parsed arguments
     return parser.parse_args()
 
