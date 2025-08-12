@@ -89,7 +89,8 @@ def readCommand(argv) -> Namespace:
                                 (exclusive) will be removed.")
     parser.add_argument("--no_discount",
                         action="store_true",
-                        help="Whether to discount rewards in testing.")
+                        help="Whether to discount rewards in testing \
+                                (default False, yes discounting).")
 
     # options for agent hyperparameters
     parser.add_argument("-p", "--params_file",

@@ -174,6 +174,10 @@ def readCommand(argv) -> Namespace:
                                 a POMDP (default None). If masking, give an \
                                 integer, and all observations up to that index \
                                 (exclusive) will be removed.")
+    parser.add_argument("--no_discount",
+                        action="store_true",
+                        help="Whether to discount rewards in testing \
+                                (default False, yes discounting).")
 
     # options for agent hyperparameters
     parser.add_argument("-p", "--params_file",
@@ -202,6 +206,7 @@ def restoreTrainingMode(agent, alpha_and_noise):
 
 def runEpisode(agent,
                env: gym.Env,
+               no_discount: bool = False,
                ) -> int:
     """
     Runs a single episode for an agent without LSTM.
@@ -209,6 +214,8 @@ def runEpisode(agent,
     """
 
     obs, info = env.reset() # reset env
+    episode_rewards = 0
+    total_discount = 1
     is_episode_over = False # loop control variable
 
     # take actions and update agent until episode termination
@@ -224,11 +231,19 @@ def runEpisode(agent,
         obs = next_obs
         is_episode_over = terminated or trunc
 
+        # update episode rewards
+        episode_rewards += reward * total_discount
+        total_discount *= agent.gamma
+
     # return episode returns
-    return info["episode"]["r"]
+    if no_discount:
+        return info["episode"]["r"]
+    else:
+        return episode_rewards
 
 def runEpisodeLSTM(agent,
                    env: gym.Env,
+                   no_discount: bool = False,
                    ) -> int:
     """
     Runs a single episode for an agent with LSTM.
@@ -236,6 +251,8 @@ def runEpisodeLSTM(agent,
     """
 
     obs, info = env.reset() # reset env
+    episode_rewards = 0
+    total_discount = 1
     is_episode_over = False # loop control variable
     lstm_states = None # track hidden state of LSTM stuff
     episode_starts = np.array([True]) # helps reset lstm_states
@@ -257,13 +274,21 @@ def runEpisodeLSTM(agent,
         is_episode_over = terminated or trunc
         episode_starts = np.array([terminated or trunc])
 
+        # update episode rewards
+        episode_rewards += rewards * total_discount
+        total_discount *= agent.gamma
+
     # return episode returns
-    return info["episode"]["r"]
+    if no_discount:
+        return info["episode"]["r"]
+    else:
+        return episode_rewards
 
 def runManyEpisodes(agent,
                     env,
                     num_episodes: int = 0,
                     agent_type: str = None,
+                    no_discount: bool = False,
                     ) -> None: 
     """
     Runs all the episodes for testing mode.
@@ -286,9 +311,9 @@ def runManyEpisodes(agent,
 
         # decide whether to run LSTM episode
         if agent_type == "rppo":
-            episode_rewards = runEpisodeLSTM(agent, env)
+            episode_rewards = runEpisodeLSTM(agent, env, no_discount)
         else:
-            episode_rewards = runEpisode(agent, env)
+            episode_rewards = runEpisode(agent, env, no_discount)
 
         # add episode returns to running list
         rewards.append(episode_rewards)
@@ -429,6 +454,7 @@ def main() -> None:
                                 env,
                                 num_episodes=args.num_test,
                                 agent_type=agent_type,
+                                no_discount=args.no_discount,
                                 ) 
 
             # add the env to the five_envs we're tracking
