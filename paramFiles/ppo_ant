@@ -1,0 +1,15 @@
+AGENT TYPE : ppo
+ENV TYPE : Ant-v5
+*****
+Number of finished trials : 4
+Value of best trial : 989.4984164
+*****
+learning_rate : 4.380880271328101e-05
+gamma : 0.9401918486979403
+batch_size : 1024
+ent_coef : 1.9598772790824464e-05
+vf_coef : 0.6896556481950131
+n_steps_exponent : 11
+clip_range : 0.26571423464197846
+gae_lambda : 0.9274996895665346
+max_grad_norm : 1.5742963818324642

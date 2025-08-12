@@ -29,6 +29,9 @@ import torch
 # check if directories exist
 import pathlib
 
+# custom statemaskingwrapper
+from statemaskingwrapper import StateMaskingWrapper
+
 class TrialEvalCallback(EvalCallback):
     """
     Callback used for evaluating and reporting a trial.
@@ -108,6 +111,13 @@ def readCommand(argv) -> Namespace:
                         type=int, default=10000,
                         metavar="N", help="Number of trials to optimize \
                                 for (default 10000).")
+    parser.add_argument("-m", "--mask_indices",
+                        type=int, default=None,
+                        metavar="M", help="Whether to mask indices in the \
+                                observation space and make the env \
+                                a POMDP (default None). If masking, give an \
+                                integer, and all observations up to that index \
+                                (exclusive) will be removed.")
 
     # return the parsed args
     return parser.parse_args()
@@ -297,6 +307,21 @@ def objective(trial: optuna.Trial) -> float:
     # create environment
     try:
         eval_env = Monitor(gym.make(args.env_type, render_mode=None))
+
+        # debug for statemaskingwrapper
+        # print(eval_env.observation_space.shape)
+
+        if args.mask_indices is not None:
+            num_masks = args.mask_indices
+            eval_env = StateMaskingWrapper(eval_env,
+                                           indices_to_mask=np.arange(num_masks),
+                                           )
+        
+        # debug for statemaskingwrapper
+        # obs, info = eval_env.reset()
+        # print(obs.shape)
+        # exit()
+
     except Exception as e:
         print(f"Failed to create environment {args.env_type}: {e}")
         raise optuna.exceptions.TrialPruned()
