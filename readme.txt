@@ -28,6 +28,10 @@ agents and test their performance.
 
 SUMMARY OF FILES:
 
+Note: on Olivia's ACES account, files (i.e. hyperparameter settings or
+trained agents) with similar names do not specifiy which agent they hold
+info for. In chronological order, they are: PPO, DDPG, TD3, SAC, RPPO.
+
 walkers_v1.py creates and loads agents into envs using hyperparameters
 passed in from the command line.
 
