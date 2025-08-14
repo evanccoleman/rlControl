@@ -24,5 +24,5 @@ Agents implemented so far:
 v1 vs v2 files:
 walker_v1 -> uses hyperparameters from flags
 walker_v2 -> uses hyperparameters from a file, POMDP 
-optimizer_v1 -> hyperparameters printed to std out
+optimizer_v1 -> hyperparameters printed to std out (deleted)
 optimizer_v2 -> hyperparameters printed to output file, POMDP
