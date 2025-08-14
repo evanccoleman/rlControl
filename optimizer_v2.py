@@ -417,7 +417,7 @@ def saveParams(study: optuna.Study,
     # name the output file
     agent_str = agent_type.lower()
     env_str = env_type.split("-")[0].lower()
-    outputFile = f"paramFiles/{agent_str}_{env_str}"
+    outputFile = f"paramFiles/optim_{agent_str}_{env_str}"
     print(f"THE NAME OF THE FILE IS: {outputFile}")
 
     with open(outputFile, mode="w", encoding="utf-8") as outFile:
