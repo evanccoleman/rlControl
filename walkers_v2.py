@@ -266,7 +266,11 @@ def readParamsFile(params_file: str = None) -> dict:
                 param = line.split(" : ")
 
                 # type cast numbers
-                if "." in param[1]:
+                if "auto" in param[1]:
+                    # is specifically an sac agent param
+                    # it stays a string
+                    pass
+                elif "." in param[1]:
                     param[1] = float(param[1])
                 else:
                     param[1] = int(param[1])
