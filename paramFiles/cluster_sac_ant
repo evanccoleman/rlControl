@@ -1,0 +1,15 @@
+AGENT TYPE : sac
+ENV TYPE : Ant-v5
+*****
+Number of finished trials : 1668
+Value of best trial : 1039.7332634000002
+*****
+learning_rate : 9.300876269077324e-06
+gamma : 0.8737299795288771
+batch_size : 256
+buffer_size : 266487
+tau : 0.004211629029963073
+ent_coef : auto_0.1
+learning_starts : 2541
+train_freq : 1
+gradient_steps : 1

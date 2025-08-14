@@ -1,0 +1,15 @@
+AGENT TYPE : rppo
+ENV TYPE : Ant-v5
+*****
+Number of finished trials : 3026
+Value of best trial : 1062.7344816
+*****
+learning_rate : 0.000603959358119869
+gamma : 0.904616392478174
+batch_size : 128
+ent_coef : 0.0017747762815069315
+vf_coef : 0.9328836781848151
+n_steps_exponent : 11
+clip_range : 0.13386718895891392
+gae_lambda : 0.90691978423969
+max_grad_norm : 0.48876136442491663
