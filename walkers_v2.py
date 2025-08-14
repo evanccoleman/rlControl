@@ -33,10 +33,12 @@ def readCommand(argv) -> Namespace:
     usage_str = """
     USAGE:      python walkers_v2.py <options>
     EXAMPLES:   (1) python walkers_v2.py -n ppo -env Ant-v5 -i 10000 \
-            -k 10 -sq
+            -k 10 -sq -p paramFiles/cluster_ppo_ant
                     - trains ppo agent in Ant-v5 for 10000 steps and \
                             tests for 10 episodes
                     - also saves the agent and runs without rendering
+                    - also creates a ppo agent using hyperparameters \
+                            in the given gile
                 (2) python walkers_v2.py -l agents_walkers/ppo_ant_10000\
                         .zip -env Ant-v5 -k 10
                     - loads a ppo agent into Ant-v5 and tests for 10 \
@@ -397,7 +399,7 @@ def saveAgent(agent=None,
     Save a loaded agent or a fresh agent and
     auto-generate the save name according to
     a pattern like:
-    'agents_ant/ppo_ant_10000.zip'
+    'tuned_agents_ant/ppo_ant_10000.zip'
     """
 
     # saving a fresh agent
@@ -405,7 +407,7 @@ def saveAgent(agent=None,
         # create save name
         the_env = env_type.split("-")[0]
         the_env = the_env.lower()
-        save_name = "agents_" + the_env + "/" + \
+        save_name = "tuned_agents_" + the_env + "/" + \
                 agent_type + "_" + the_env + "_" + str(num_train) + ".zip" 
 
         print(f"\nSAVING AGENT TO '{save_name}'...")
