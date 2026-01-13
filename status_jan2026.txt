@@ -1,0 +1,14 @@
+Date: Spring 2026
+
+==================================
+
+SUMMARY OF FILES (since status_aug2025):
+
+walkers_v1.py --> loads agent from cli 
+walkers_v2.py --> load agent from paramsFiles/ 
+walkers_v3.py --> load LinghengMeng POMDP 
+
+readme.txt --> status_aug2025.txt
+status_jan2026.txt
+
+==================================
