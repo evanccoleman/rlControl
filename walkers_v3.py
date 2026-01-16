@@ -66,11 +66,13 @@ def readCommand(argv) -> Namespace:
     parser.add_argument("-env", "--env_type",
                         type=str, default=None,
                         help="Which environment to put agent in.")
-    parser.add_argument("-p", "--is_pomdp",
-                        action="store_true",
-                        help="Whether to make environment POMDP \
-                                (default False, True when option is \
-                                present).")
+    parser.add_argument("-p", "--pomdp_env",
+                        type=str, default=None,
+                        help="Specifies POMDP to create. \
+                                Types include remove_velocity,\
+                                flickering, random_noise, \
+                                random_sensor_missing, or some combo \
+                                (refer to POMDPWrapper() constructor)")
 
     # options for training and testing
     parser.add_argument("-i", "--num_train",
@@ -411,7 +413,7 @@ def saveAgent(agent=None,
 
 def createEnv(env_type: str,
               quiet: bool,
-              is_pomdp: bool,
+              the_pomdp: str,
               ):
     """
     Creates a gymnasium env.
@@ -423,19 +425,19 @@ def createEnv(env_type: str,
     env = None
 
     # decide if environment is POMDP and/or is rendered
-    if is_pomdp:
+    if the_pomdp != None:
+        print(f"\nPOMDP TYPE: {the_pomdp}...")
         if quiet:
-            env = POMDPWrapper(env_type,
-                               pomdp_type="remove_velocity",
+            env = POMDPWrapper(env_type, pomdp_type=the_pomdp,
+                               render_mode=None
                                )
         else:
-            env = POMDPWrapper(env_type,
-                               pomdp_type="remove_velocity",
-                               render_mode="human"
-                               )
+            env = POMDPWrapper(env_type, pomdp_type=the_pomdp,
+                               render_mode="human")
     else:
+        print(f"\nFULLY OBSERVABLE MDP...")
         if quiet:
-            env = gym.make(env_type)
+            env = gym.make(env_type, render_mode=None)
         else:
             env = gym.make(env_type, render_mode="human")
 
@@ -470,10 +472,10 @@ def main() -> None:
         raise Exception("Must specify an environment to create.")
 
     # create the environment
-    print(f"\n\nCREATING ENVIRONMENT IN {args.env_type}...")
+    print(f"\nCREATING ENVIRONMENT IN {args.env_type}...")
     env = createEnv(env_type=args.env_type,
                     quiet=args.quiet,
-                    is_pomdp=args.is_pomdp
+                    the_pomdp=args.pomdp_env
                     )
 
     # create new agent and remember agent type
