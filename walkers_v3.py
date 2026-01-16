@@ -1,4 +1,4 @@
-# walkers_v1.py
+# walkers_v3.py
 
 # good ol' numpy
 import numpy as np
@@ -17,65 +17,11 @@ from stable_baselines3 import PPO, DDPG, SAC, TD3
 from stable_baselines3.common.noise import NormalActionNoise
 from sb3_contrib import RecurrentPPO
 
+# POMDP wrapper
+from pomdp_wrapper import POMDPWrapper
+
 # custom agents
 # from custom_ddpg import CustomDDPG, ActionNormalizer
-
-class StateMaskingWrapper(gym.ObservationWrapper):
-    """
-    Wrapper that masks (removes) specific indixes from a
-    Box observation space.
-
-    Useful for inducing partial observability in standard
-    MDP environments by withholding state information
-    from the agent.
-    """
-
-    def __init__(self,
-                 env: gym.Env,
-                 indices_to_mask: list,
-                 ):
-        """
-        Initialize a StateMaskingWrapper.
-        """
-
-        super().__init__(env)
-
-        # check if obs space is Box
-        if not isinstance(env.observation_space, Box):
-            raise TypeError(f"StateMaskingWrapper only supports Box \
-                    observation spaces but got \
-                    {type(env.observation_space)}") 
-
-        # remove duplicate indices and sort biggest to smallest
-        self.indices_to_mask = sorted(list(set(indices_to_mask)), reverse=True)
-        self.original_obs_space = env.observation_space
-
-        # validate indices
-        # assumes the original obs space is a 1D array
-        for idx in self.indices_to_mask:
-            if not 0 <= idx < self.original_obs_space.shape[0]:
-                raise ValueError(f"Index {idx} is out of bounds for \
-                        observation space shape \
-                        {self.original_obs_space.shape}")
-
-        # create a mask for keeping elements
-        self.keep_mask = np.ones(self.original_obs_space.shape,
-                                 dtype=bool)
-        self.keep_mask[self.indices_to_mask] = False
-
-        # modify the observation space
-        new_low = self.original_obs_space.low[self.keep_mask]
-        new_high = self.original_obs_space.high[self.keep_mask]
-        self.observation_space = Box(low=new_low,
-                                     high=new_high,
-                                     dtype=self.original_obs_space.dtype,
-                                     )
-
-    def observation(self, obs: np.ndarray) -> np.ndarray:
-        """
-        Applies the mask to the observation.
-        """
-        return obs[self.keep_mask]
 
 def readCommand(argv) -> Namespace:
     """
@@ -85,13 +31,13 @@ def readCommand(argv) -> Namespace:
 
     # instructions for how to run walkers_v1.py found using -h
     usage_str = """
-    USAGE:      python walkers_v1.py <options>
-    EXAMPLES:   (1) python walkers_v1.py -n ppo -env Ant-v5 -i 10000 \
+    USAGE:      python walkers_v3.py <options>
+    EXAMPLES:   (1) python walkers_v3.py -n ppo -env Ant-v5 -i 10000 \
             -k 10 -sq
                     - trains ppo agent in Ant-v5 for 10000 steps and \
                             tests for 10 episodes
                     - also saves the agent and runs without rendering
-                (2) python walkers_v1.py -l agents_walkers/ppo_ant_10000\
+                (2) python walkers_v3.py -l agents_walkers/ppo_ant_10000\
                         .zip -env Ant-v5 -k 10
                     - loads a ppo agent into Ant-v5 and tests for 10 \
                             episodes with rendering
@@ -120,6 +66,11 @@ def readCommand(argv) -> Namespace:
     parser.add_argument("-env", "--env_type",
                         type=str, default=None,
                         help="Which environment to put agent in.")
+    parser.add_argument("-p", "--is_pomdp",
+                        action="store_true",
+                        help="Whether to make environment POMDP \
+                                (default False, True when option is \
+                                present).")
 
     # options for training and testing
     parser.add_argument("-i", "--num_train",
@@ -134,13 +85,6 @@ def readCommand(argv) -> Namespace:
                         action="store_true",
                         help="Whether to render env (default False, \
                                 True when option is present).")
-    parser.add_argument("-m", "--mask_indices",
-                        type=int, default=None,
-                        metavar="M", help="Whether to mask indices in the \
-                                observation space and make the env \
-                                a POMDP (default None). If masking, give an \
-                                integer, and all observations up to that index \
-                                (exclusive) will be removed.")
     parser.add_argument("--no_discount",
                         action="store_true",
                         help="Whether to return discounted rewards \
@@ -467,7 +411,7 @@ def saveAgent(agent=None,
 
 def createEnv(env_type: str,
               quiet: bool,
-              num_masks: int, 
+              is_pomdp: bool,
               ):
     """
     Creates a gymnasium env.
@@ -478,31 +422,28 @@ def createEnv(env_type: str,
     """
     env = None
 
-    # decide whether to render
-    if quiet:
-        env = gym.make(env_type)
+    # decide if environment is POMDP and/or is rendered
+    if is_pomdp:
+        if quiet:
+            env = POMDPWrapper(env_type,
+                               pomdp_type="remove_velocity",
+                               )
+        else:
+            env = POMDPWrapper(env_type,
+                               pomdp_type="remove_velocity",
+                               render_mode="human"
+                               )
     else:
-        env = gym.make(env_type, render_mode="human")
-    
+        if quiet:
+            env = gym.make(env_type)
+        else:
+            env = gym.make(env_type, render_mode="human")
+
+   
     # track non-discounted returns automatically
     env = gym.wrappers.RecordEpisodeStatistics(env) 
 
-    # debug print for masking
-    # print(env.observation_space.shape)
-
-    # mask observation space
-    if num_masks is not None:
-        env = StateMaskingWrapper(env,
-                                  indices_to_mask=np.arange(num_masks),
-                                  )
-
-    # debug print for masking
-    # obs, info = env.reset()
-    # print(obs.shape)
-    # exit()
-
     return env
-
 
 def main() -> None:
     """
@@ -532,7 +473,7 @@ def main() -> None:
     print(f"\n\nCREATING ENVIRONMENT IN {args.env_type}...")
     env = createEnv(env_type=args.env_type,
                     quiet=args.quiet,
-                    num_masks=args.mask_indices,
+                    is_pomdp=args.is_pomdp
                     )
 
     # create new agent and remember agent type
