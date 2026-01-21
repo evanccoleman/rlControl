@@ -38,9 +38,9 @@ def readCommand(argv) -> Namespace:
                             tests for 10 episodes
                     - also saves the agent and runs without rendering
                 (2) python walkers_v3.py -l agents_walkers/ppo_ant_10000\
-                        .zip -env Ant-v5 -k 10
+                        .zip -env Ant-v5 -k 10 -p remove-velocity
                     - loads a ppo agent into Ant-v5 and tests for 10 \
-                            episodes with rendering
+                            episodes with rendering in a pomdp
     """
 
     # create the argument parser
@@ -68,7 +68,7 @@ def readCommand(argv) -> Namespace:
                         help="Which environment to put agent in.")
     parser.add_argument("-p", "--pomdp_env",
                         type=str, default=None,
-                        help="Specifies POMDP to create. \
+                        help="Specifies POMDP to create (default None). \
                                 Types include remove_velocity,\
                                 flickering, random_noise, \
                                 random_sensor_missing, or some combo \
