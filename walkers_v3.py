@@ -561,7 +561,7 @@ def main() -> None:
                           num_episodes=args.num_test,
                           agent_type=agent_type,
                           no_discount=args.no_discount,
-                          seed=args.seed,
+                          seed=args.seed + 1,
                           ) 
 
     print("\nCLOSING WALKERS...\n\n")
