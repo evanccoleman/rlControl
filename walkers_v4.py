@@ -17,16 +17,23 @@ import argparse
 from argparse import Namespace
 import sys 
 
-# stable_baselines3 (and contrib) agents and noise
+# stable_baselines3 (and contrib) agents 
 from stable_baselines3 import PPO, DDPG, SAC, TD3 
+
+# stable_baselines3 (and contrib) noise
 from stable_baselines3.common.noise import NormalActionNoise
 from sb3_contrib import RecurrentPPO
+
+# stable_baselines3 logger
+from stable_baselines3.common.logger import configure
 
 # POMDPWrapper
 from pomdp_wrapper import POMDPWrapper
 
 # custom agents
 # from custom_ddpg import CustomDDPG, ActionNormalizer
+
+MAX_STEPS_TO_TRAIN = 10_000
 
 def read_command(argv) -> Namespace:
     """
@@ -37,15 +44,17 @@ def read_command(argv) -> Namespace:
     # instructions for how to run walkers_v1.py found using -h
     usage_str = """
     USAGE:      python walkers_v4.py <options>
-    EXAMPLES:   (1) python walkers_v4.py -n ppo -e Ant-v5 -i 10000 \
-                         -k 10 -sq --seed 12
-                    - trains ppo agent in Ant-v5 for 10000 steps and \
-                        tests for 10 episodes with seed 12
-                    - also saves the agent and runs without rendering
+    EXAMPLES:   (1) python walkers_v4.py -a ppo -e Ant-v5 -i 10000 \
+                    -k 10 -sq -p remove_velocity
+                      - trains ppo agent in Ant-v5 for 10000 steps and \
+                        tests for 10 episodes 
+                      - also saves the agent and runs without rendering
+                      - env is pomdp where velocity is removed
                 (2) python walkers_v4.py -l agents_walkers/ppo_ant_10000\
-                        .zip -e Ant-v5 -k 10 -p remove_velocity
-                    - loads a ppo agent into Ant-v5 and tests for 10 \
-                        episodes with rendering in a pomdp
+                    .zip -e Ant-v5 -k 10 
+                      - loads a ppo agent into Ant-v5 and tests for 10 \
+                        episodes with rendering 
+                      - if pomdp, can only load pomdp agents
     """
 
     # create the argument parser
@@ -72,7 +81,7 @@ def read_command(argv) -> Namespace:
     parser.add_argument("-e", "--env_type",
                         type=str, default=None,
                         help="Which environment to put agent in.")
-    parser.add_argument("-p", "--pomdp_env",
+    parser.add_argument("-p", "--pomdp_type",
                         type=str, default=None,
                         help="Specifies POMDP to create (default None). \
                                 Types include remove_velocity,\
@@ -88,16 +97,20 @@ def read_command(argv) -> Namespace:
 
     # options for training and testing
     parser.add_argument("-n", "--num_agent_env_pairs",
-                        type=int, default=4,
+                        type=int, default=2,
                         metavar="N", help="The number of agent/env \
-                                pairs to train and evaluate (default 4). \
+                                pairs to train and test (default 4). \
                                 Seeds are randomly generated [0, 100).")
     parser.add_argument("-i", "--num_train",
-                        type=int, default=0,
+                        type=int, default=5_000,
                         metavar="I", help="The number of steps to \
-                                train for (default 0).")
+                                train for before testing (default 0).")
+    parser.add_argument("-j", "--training_interval",
+                        type=int, default=1_000,
+                        metavar="J", help="The number of steps to \
+                                train for between testing (default 0).")
     parser.add_argument("-k", "--num_test",
-                        type=int, default=0,
+                        type=int, default=5,
                         metavar="K", help="The number of episodes to \
                                 test for (default 0).")
     parser.add_argument("-q", "--quiet",
@@ -237,15 +250,12 @@ def run_many_episodes(agent,
                       num_episodes: int = 0,
                       agent_type: str = None,
                       no_discount: bool = False,
-                      seed: int = 0,
                       ) -> None: 
     """
     Executes episodes in testing mode for an agent.
 
-    Reports the average returns from the testing run.
+    Returns the average returns from the testing run.
     """
-
-    print(f"\nBEGINNING TESTING FOR {num_episodes} EPISODES...")
 
     # turn off training mode and begin exploitation
     training_settings = (agent.learning_rate, agent.action_noise)
@@ -254,12 +264,8 @@ def run_many_episodes(agent,
     # track episodic returns
     rewards = []
 
-    # seed the environment for this run
-    env.reset(seed=seed)
-
     # run the episodes
     for i in range(1, num_episodes + 1):
-        print(f"\nEPISODE {i}...")
         episode_rewards = 0 # initialize and set this in scope
 
         # decide whether to run LSTM episode
@@ -279,98 +285,129 @@ def run_many_episodes(agent,
     # calculate performance
     avg_reward = np.mean(rewards)
 
-    # report performance
-    print(f"\nTESTING PERFORMANCE FOR {num_episodes} EPISODES...")
-    print(f"avg reward : {avg_reward:.3f}")
+    return avg_reward
+
+def read_params_file(params_file: str = None) -> dict:
+    """
+    Parses hyperparameters settings form a file.
+    """
+
+    param_settings = {}
+    count_delimiters = 0
+    with open(params_file, mode="r", encoding="utf-8") as inFile:
+
+        # loop through each line of the file
+        for line in inFile:
+
+            # skip over info before the first two delimiters "*****"
+            if count_delimiters != 2:
+                if line.strip() == "*****":
+                    count_delimiters += 1
+
+            # start reading parameters
+            else:
+                line = line.strip()
+                param = line.split(" : ")
+
+                # type cast numbers
+                if "auto" in param[1]:
+                    # is specifically an sac agent param
+                    # it stays a string
+                    pass
+                elif "." in param[1]:
+                    param[1] = float(param[1])
+                else:
+                    param[1] = int(param[1])
+                param_settings.update({param[0]: param[1]})
+
+    return param_settings
 
 def create_agent(agent_type: str = None,
                  load_agent: str = None,
                  env=None,
+                 params_file: str = None,
                  seed: int = 0,
                  ): 
     """
     Creates a new agent or loads a pre-existing one.
     """
 
-    agent = None        # store agent to return here
+    if load_agent:
 
-    # create a new agent with the given hyperparameters
-    if agent_type == "ppo":
-        print("\nCREATING NEW PPO AGENT...\n")
-        agent = PPO("MlpPolicy", env, verbose=1,
-                    seed=seed,
-                    )
-        agent_type = "ppo"
-
-    elif agent_type == "ddpg":
-        print("\nCREATING NEW DDPG AGENT...\n")
-        # noise objects for DDPG
-        n_actions = env.action_space.shape[-1]
-        action_noise = NormalActionNoise(mean=np.zeros(n_actions),
-                                         sigma=0.1*np.ones(n_actions)
-                                         )
-        agent = DDPG("MlpPolicy", env, verbose=1,
-                     action_noise=action_noise,
-                     seed=seed,
-                     )
-        agent_type = "ddpg"
-
-    elif agent_type == "td3":
-        print("\nCREATING NEW TD3 AGENT...\n")
-        # noise objects for DDPG
-        n_actions = env.action_space.shape[-1]
-        action_noise = NormalActionNoise(mean=np.zeros(n_actions),
-                                         sigma=0.1*np.ones(n_actions)
-                                         )
-        agent = TD3("MlpPolicy", env, verbose=1,
-                    action_noise=action_noise,
-                    seed=seed,
-                    )
-        agent_type = "td3"
-
-    elif agent_type == "sac":
-        print("\nCREATING NEW SAC AGENT...\n")
-        agent = SAC("MlpPolicy", env, verbose=1,
-                    seed=seed,
-                    )
-        agent_type = "sac"
-
-    elif agent_type == "rppo":
-        print("\nCREATING NEW RPPO AGENT...\n")
-        agent = RecurrentPPO("MlpLstmPolicy", env, verbose=1,
-                             seed=seed,
-                             )
-        agent_type = "rppo"
-        
-#    elif agent_type == "customddpg":
-#        print("\nCREATING NEW CUSTOMDDPG AGENT...\n")
-#        agent = CustomDDPG(env=env)
-#        agent_type = "customddpg"
-
-    # load agent in from zip file as is
-    else:
-
-        # determine agent type first
-        agent_type = load_agent.split("/")[1].split("_", 1)[0]
-
-        # actually load in agent now
+        # load agent from a zip file
         if agent_type == "ppo":
-            print(f"\nLOADING PPO AGENT '{load_agent}'...\n")
             agent = PPO.load(load_agent, env=env, seed=seed)
         elif agent_type == "ddpg":
-            print(f"\nLOADING DDPG AGENT '{load_agent}'...\n")
             agent = DDPG.load(load_agent, env=env, seed=seed)
         elif agent_type == "td3":
-            print(f"\nLOADING TD3 AGENT '{load_agent}'...\n")
             agent = TD3.load(load_agent, env=env, seed=seed)
         elif agent_type == "sac":
-            print(f"\nLOADING SAC AGENT '{load_agent}'...\n")
             agent = SAC.load(load_agent, env=env, seed=seed)
         elif agent_type == "rppo":
-            print(f"\nLOADING RPPO AGENT '{load_agent}'...\n")
             agent = RecurrentPPO.load(load_agent, env=env, seed=seed)
         else:
             raise Exception(f"Agent {agent_type} not implemented.")
+
+    else:
+
+        # get settings if creating new agent
+        param_settings = {} 
+        if params_file is not None:
+            param_settings = read_params_file(params_file)
+
+        # create a new agent with the given hyperparameters
+        if agent_type == "ppo":
+            n_steps = 2 ** param_settings["n_steps_exponent"]
+            del param_settings["n_steps_exponent"]
+            agent = PPO("MlpPolicy",
+                        env,
+                        seed=seed,
+                        **param_settings,
+                        )
+
+        elif agent_type == "ddpg":
+            # noise objects for DDPG
+            n_actions = env.action_space.shape[-1]
+            action_noise = NormalActionNoise(mean=np.zeros(n_actions),
+                                             sigma=0.1*np.ones(n_actions),
+                                             )
+            agent = DDPG("MlpPolicy",
+                         env, 
+                         action_noise=action_noise,
+                         seed=seed,
+                         **param_settings,
+                         )
+
+        elif agent_type == "td3":
+            # noise objects for DDPG
+            n_actions = env.action_space.shape[-1]
+            action_noise = NormalActionNoise(mean=np.zeros(n_actions),
+                                             sigma=0.1*np.ones(n_actions),
+                                             )
+            agent = TD3("MlpPolicy",
+                        env, 
+                        action_noise=action_noise,
+                        seed=seed,
+                        **param_settings,
+                        )
+
+        elif agent_type == "sac":
+            agent = SAC("MlpPolicy", 
+                        env, 
+                        seed=seed,
+                        **param_settings,
+                        )
+
+        elif agent_type == "rppo":
+            agent = RecurrentPPO("MlpLstmPolicy",
+                                 env, 
+                                 seed=seed,
+                                 **param_settings,
+                                 )
+            
+#       elif agent_type == "customddpg":
+#           agent = CustomDDPG(env=env)
+#           agent_type = "customddpg"
 
     return agent 
 
@@ -415,7 +452,7 @@ def save_agent(agent=None,
 
 def create_env(env_type: str,
                quiet: bool,
-               the_pomdp: str,
+               pomdp_type: str,
                ):
     """
     Creates a Gymnasium environment.
@@ -425,20 +462,18 @@ def create_env(env_type: str,
     """
 
     # decide if environment is POMDP and/or is rendered
-    if the_pomdp != None:
-        print(f"\nPOMDP TYPE: '{the_pomdp}'...")
+    if pomdp_type != None:
         if quiet:
             env = POMDPWrapper(env_type,
-                               pomdp_type=the_pomdp,
+                               pomdp_type=pomdp_type,
                                render_mode=None,
                                )
         else:
             env = POMDPWrapper(env_type,
-                               pomdp_type=the_pomdp,
+                               pomdp_type=pomdp_type,
                                render_mode="human",
                                )
     else:
-        print(f"\nFULLY OBSERVABLE MDP...")
         if quiet:
             env = gym.make(env_type,
                            render_mode=None,
@@ -453,6 +488,32 @@ def create_env(env_type: str,
 
     return env
 
+def write_output(output_filename: str = None,
+                 the_dict: dict = None,
+                 oned_nparray: np.ndarray = None,
+                 twod_nparray: np.ndarray = None,
+                 ):
+    """
+    Writes the given variables to an output file.
+    """
+
+    output_path = "avgs/" + output_filename
+    with open(output_path, mode="w", encoding="utf-8") as out_file:
+
+        for key, value in the_dict.items():
+            out_file.write(str(key) + " : " + str(value) + "\n")
+        out_file.write("*****\n")
+
+        for element in oned_nparray:
+            out_file.write(str(element) + " ")
+        out_file.write("\n*****\n")
+
+        for arr in twod_nparray:
+            for element in arr:
+                out_file.write(str(element) + " ")
+            out_file.write("\n")
+        out_file.write("*****")
+
 def main() -> None:
     """
     Runs walkers_v4.py.
@@ -461,72 +522,117 @@ def main() -> None:
     # read in the options from the command line
     args = read_command(sys.argv[1:])
 
-    # auto-convert agent_type to be lowercase
-    if args.agent_type is not None:
-        args.agent_type = args.agent_type.lower()
+    # convert agent_type to be lowercase
+    if args.load_agent:
+        agent_type = args.load_agent.split("/")[1].split("_", 1)[0]
+    else:
+        agent_type = args.agent_type.lower()
 
     # randomly generate seeds
+    # first half for training, second half for testing
     seeds = array.array("i",
-                        random.sample(range(100), k=args.num_agent_env_pairs),
+                        random.sample(range(100),
+                                      k=2*args.num_agent_env_pairs),
                         )
-    print(type(seeds[0]))
 
-    # set the seed for packages before creating agents or envs
-    set_seed(seeds[0])
+    details = {"seeds" : seeds,
+               "agent_type" : args.agent_type,
+               "load_agent" : args.load_agent,
+               "save_agent" : args.save_agent,
+               "env_type" : args.env_type,
+               "pomdp_type" : args.pomdp_type,
+               "hyperparameters_file" : args.hyperparameters_file,
+               "num_agent_env_pairs" : args.num_agent_env_pairs,
+               "num_train" : args.num_train,
+               "training_interval" : args.training_interval,
+               "num_test" : args.num_test,
+               "quiet" : args.quiet,
+               "no_discount" : args.no_discount,
+               }
 
-    # create the environment
-    print(f"\nCREATING ENVIRONMENT IN '{args.env_type}'...")
-    env = create_env(env_type=args.env_type,
-                     quiet=args.quiet,
-                     the_pomdp=args.pomdp_env,
-                     )
+    # prepare array to hold averages of each agent
+    num_entries = (MAX_STEPS_TO_TRAIN - args.num_train) // \
+            args.training_interval + 1
+    all_agent_avgs = np.zeros([args.num_agent_env_pairs, num_entries],
+                              dtype=float,
+                              )
+    
+    # train and test agents one at a time
+    for i in range(len(seeds) // 2):
 
-    print(f"\nSEEDING WITH {seeds[0]}...")
-
-    # create new agent and remember agent type
-    agent = create_agent(agent_type=args.agent_type,
-                         load_agent=args.load_agent,
-                         env=env,
-                         seed=seeds[0],
+        # create and seed packages, environment, and agent
+        set_seed(seeds[i])
+        env = create_env(env_type=args.env_type,
+                         quiet=args.quiet,
+                         pomdp_type=args.pomdp_type,
                          )
+        env.reset(seed=seeds[i])
+        agent = create_agent(agent_type=agent_type,
+                             load_agent=args.load_agent,
+                             env=env,
+                             seed=seeds[i],
+                             params_file=args.hyperparameters_file,
+                             )
+
+        # change where rollout output from stable_baselines3 logger goes
+        agent.set_logger(configure("", []))
 
 #    # add action normalizer wrapper to env if agent is custom ddpg
 #    if agent_type == "customddpg":
 #        env = ActionNormalizer(env)
 
-    # train agent
-    env.reset(seed=seeds[0])
-    if args.num_train > 0:
-        print(f"\nTRAINING AGENT FOR AT LEAST {args.num_train} STEPS...")
-        agent.learn(total_timesteps=args.num_train,
-                    log_interval=5,
-                    progress_bar=True,
-                    )
-   
-    # save agent
-    if args.save_agent:
-        print(f"\nSAVING AGENT...")
-        save_agent(agent=agent,
-                   env_type=args.env_type,
-                   load=args.load_agent,
-                   agent_type=args.agent_type,
-                   num_train=args.num_train,
-                   )
+        # first round of training
+        # already reset env after creation
+        agent.learn(total_timesteps=args.num_train)
+        training_rng_state = env.np_random.bit_generator.state
 
-    # test agent
-    if args.num_test > 0:
-        print(f"\nTESTING AGENT FOR {args.num_test} EPISODES...")
-        run_many_episodes(agent,
-                          env,
-                          num_episodes=args.num_test,
-                          agent_type=agent_type,
-                          no_discount=args.no_discount,
-                          seed=seeds[0] + 1,
-                          ) 
+        # first round of testing
+        env.reset(seed=seeds[i + len(seeds) // 2])
+        ep_eval_avg = run_many_episodes(agent,
+                                        env,
+                                        num_episodes=args.num_test,
+                                        agent_type=agent_type,
+                                        no_discount=args.no_discount,
+                                        )
+        j = 0
+        all_agent_avgs[i][j] = ep_eval_avg
+        j += 1
+        testing_rng_state = env.np_random.bit_generator.state
 
-    print("\nCLOSING WALKERS...\n\n")
-    env.close()
+        # continue to alternate between training and testing
+        while j < len(all_agent_avgs[i]):
 
+            # round of training
+            env.np_random.bit_generator.state = training_rng_state
+            env.reset()
+            agent.learn(total_timesteps=args.training_interval)
+            training_rng_state = env.np_random.bit_generator.state
+
+            # round of testing
+            env.np_random.bit_generator.state = testing_rng_state
+            # run_many_episodes() handles resetting
+            ep_eval_avg = run_many_episodes(agent,
+                                            env,
+                                            num_episodes=args.num_test,
+                                            agent_type=agent_type,
+                                            no_discount=args.no_discount,
+                                            )
+            all_agent_avgs[i][j] = ep_eval_avg
+            j += 1
+            testing_rng_state = env.np_random.bit_generator.state
+
+       # close env
+        env.close()
+
+    # calculate average of performance across randomly generated seeds
+    final_avgs = np.mean(all_agent_avgs, axis=0)
+
+    # write to output file
+    write_output(output_filename="ppo_ant",
+                 the_dict=details,
+                 oned_nparray=final_avgs,
+                 twod_nparray=all_agent_avgs,
+                 )
 
 if __name__ == "__main__":
 
