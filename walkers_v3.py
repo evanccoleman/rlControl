@@ -1,5 +1,9 @@
 # walkers_v3.py
 
+# random module and PyTorch for seeing
+import random
+import torch
+
 # good ol' numpy
 import numpy as np
 
@@ -23,7 +27,7 @@ from pomdp_wrapper import POMDPWrapper
 # custom agents
 # from custom_ddpg import CustomDDPG, ActionNormalizer
 
-def readCommand(argv) -> Namespace:
+def read_command(argv) -> Namespace:
     """
     Reads in command line options that set
     the environment and the agent.
@@ -59,11 +63,12 @@ def readCommand(argv) -> Namespace:
                         action="store_true",
                         help="Whether to save the agent (default False, \
                                 True when option is present). \
+                                Seed is not saved. \
                                 If True, a save name is auto-generated \
                                 and the save directory is automatically \
                                 determined. Looks like \
                                 'agents_ant/ppo_ant_10000.zip'.")
-    parser.add_argument("-env", "--env_type",
+    parser.add_argument("-e", "--env_type",
                         type=str, default=None,
                         help="Which environment to put agent in.")
     parser.add_argument("-p", "--pomdp_env",
@@ -73,6 +78,10 @@ def readCommand(argv) -> Namespace:
                                 flickering, random_noise, \
                                 random_sensor_missing, or some combo \
                                 (refer to POMDPWrapper() constructor)")
+    parser.add_argument("--seed",
+                        type=int, default=42,
+                        help="Seed to use for the agent, environment, \
+                                and packages (default 42).")
 
     # options for training and testing
     parser.add_argument("-i", "--num_train",
@@ -111,7 +120,18 @@ def readCommand(argv) -> Namespace:
     # return the parsed arguments
     return parser.parse_args()
 
-def turnOffTrainingMode(agent):
+def set_seed(seed):
+    # for Python's built-in random module
+    random.seed(seed)
+
+    # for numpy
+    np.random.seed(seed)
+
+    # for PyTorch and PyTorch with GPU
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+
+def turn_off_training_mode(agent):
     """
     Sets the agent's learning rate and action noise
     (if any) to 0.
@@ -119,7 +139,7 @@ def turnOffTrainingMode(agent):
     agent.learning_rate = 0
     agent.action_noise = None
 
-def restoreTrainingMode(agent, alpha_and_noise):
+def restore_training_mode(agent, alpha_and_noise):
     """
     Restores the agent's learning rate and action noise
     (if any) to the originals.
@@ -127,7 +147,7 @@ def restoreTrainingMode(agent, alpha_and_noise):
     agent.learning_rate = alpha_and_noise[0]
     agent.action_noise = alpha_and_noise[1]
 
-def runEpisode(agent,
+def run_episode(agent,
                env: gym.Env,
                no_discount: bool = False,
                ) -> int:
@@ -164,7 +184,7 @@ def runEpisode(agent,
     else:
         return episode_rewards 
 
-def runEpisodeLSTM(agent,
+def run_episode_lstm(agent,
                    env: gym.Env,
                    no_discount: bool = False,
                    ) -> int:
@@ -207,11 +227,12 @@ def runEpisodeLSTM(agent,
     else:
         return episode_rewards 
 
-def runManyEpisodes(agent,
+def run_many_episdoes(agent,
                     env,
                     num_episodes: int = 0,
                     agent_type: str = None,
                     no_discount: bool = False,
+                    the_seed: int = 42,
                     ) -> None: 
     """
     Runs all the episodes for testing mode.
@@ -222,10 +243,13 @@ def runManyEpisodes(agent,
 
     # turn off training mode and begin exploitation
     training_settings = (agent.learning_rate, agent.action_noise)
-    turnOffTrainingMode(agent)
+    turn_off_training_mode(agent)
 
     # track episodic returns
     rewards = []
+
+    # seed the environment for this run
+    env.reset(seed=the_seed)
 
     # run the episodes
     for i in range(1, num_episodes + 1):
@@ -234,17 +258,17 @@ def runManyEpisodes(agent,
 
         # decide whether to run LSTM episode
         if agent_type == "rppo":
-            episode_rewards = runEpisodeLSTM(agent, env,
+            episode_rewards = run_episode_lstm(agent, env,
                                              no_discount=no_discount)
         else:
-            episode_rewards = runEpisode(agent, env,
+            episode_rewards = run_episode(agent, env,
                                          no_discount=no_discount)
 
         # add episode returns to running list
         rewards.append(episode_rewards)
 
     # restore training mode
-    restoreTrainingMode(agent, training_settings)
+    restore_training_mode(agent, training_settings)
 
     # calculate performance
     avg_reward = np.mean(rewards)
@@ -253,13 +277,14 @@ def runManyEpisodes(agent,
     print(f"\nTESTING PERFORMANCE FOR {num_episodes} EPISODES...")
     print(f"avg reward : {avg_reward:.3f}")
 
-def createAgent(new_agent: str = None,
+def create_agent(new_agent: str = None,
                 load_agent: str = None,
                 env=None,
                 alpha: int = None,
                 gamma: int = None,
                 buffer_size: int = None,
                 batch_size: int = None,
+                the_seed: int = 42,
                 ) -> tuple: 
     """
     Returns a tuple of (agent, agent_type) where an agent is
@@ -279,6 +304,7 @@ def createAgent(new_agent: str = None,
                     learning_rate=alpha,
                     gamma=gamma,
                     batch_size=batch_size,
+                    seed=the_seed,
                     )
         agent_type = "ppo"
 
@@ -295,6 +321,7 @@ def createAgent(new_agent: str = None,
                      gamma=gamma,
                      batch_size=batch_size,
                      buffer_size=buffer_size,
+                     seed=the_seed,
                      )
         agent_type = "ddpg"
 
@@ -311,6 +338,7 @@ def createAgent(new_agent: str = None,
                     gamma=gamma,
                     batch_size=batch_size,
                     buffer_size=buffer_size,
+                    seed=the_seed,
                     )
         agent_type = "td3"
 
@@ -321,6 +349,7 @@ def createAgent(new_agent: str = None,
                     gamma=gamma,
                     batch_size=batch_size,
                     buffer_size=buffer_size,
+                    seed=the_seed,
                     )
         agent_type = "sac"
 
@@ -330,7 +359,7 @@ def createAgent(new_agent: str = None,
                              learning_rate=alpha,
                              gamma=gamma,
                              batch_size=batch_size,
-
+                             seed=the_seed,
                              )
         agent_type = "rppo"
         
@@ -353,26 +382,26 @@ def createAgent(new_agent: str = None,
         # actually load in agent now
         if agent_type == "ppo":
             print(f"\nLOADING PPO AGENT '{load_agent}'...\n")
-            agent = PPO.load(load_agent, env=env)
+            agent = PPO.load(load_agent, env=env, seed=the_seed)
         elif agent_type == "ddpg":
             print(f"\nLOADING DDPG AGENT '{load_agent}'...\n")
-            agent = DDPG.load(load_agent, env=env)
+            agent = DDPG.load(load_agent, env=env, seed=the_seed)
         elif agent_type == "td3":
             print(f"\nLOADING TD3 AGENT '{load_agent}'...\n")
-            agent = TD3.load(load_agent, env=env)
+            agent = TD3.load(load_agent, env=env, seed=the_seed)
         elif agent_type == "sac":
             print(f"\nLOADING SAC AGENT '{load_agent}'...\n")
-            agent = SAC.load(load_agent, env=env)
+            agent = SAC.load(load_agent, env=env, seed=the_seed)
         elif agent_type == "rppo":
             print(f"\nLOADING RPPO AGENT '{load_agent}'...\n")
-            agent = RecurrentPPO.load(load_agent, env=env)
+            agent = RecurrentPPO.load(load_agent, env=env, seed=the_seed)
         else:
             raise Exception(f"Agent {agent_type} not implemented.")
 
     # return tuple
     return agent, agent_type
 
-def saveAgent(agent=None,
+def save_agent(agent=None,
               env_type: str = None,
               load: str = None,
               agent_type: str = None,
@@ -411,37 +440,41 @@ def saveAgent(agent=None,
         print(f"\nSAVING AGENT TO '{save_name}'...")
         agent.save(save_name)
 
-def createEnv(env_type: str,
+def create_env(env_type: str,
               quiet: bool,
               the_pomdp: str,
               ):
     """
-    Creates a gymnasium env.
+    Creates a gymnasium environment.
 
-    If masking some observations to artifically
-    create a POMDP, a list of indices to mask is 
-    created using num_masks.
+    Can make the environment partially observable
+    using the POMDPWrapper class.
     """
-    env = None
 
     # decide if environment is POMDP and/or is rendered
     if the_pomdp != None:
         print(f"\nPOMDP TYPE: {the_pomdp}...")
         if quiet:
-            env = POMDPWrapper(env_type, pomdp_type=the_pomdp,
-                               render_mode=None
+            env = POMDPWrapper(env_type,
+                               pomdp_type=the_pomdp,
+                               render_mode=None,
                                )
         else:
-            env = POMDPWrapper(env_type, pomdp_type=the_pomdp,
-                               render_mode="human")
+            env = POMDPWrapper(env_type,
+                               pomdp_type=the_pomdp,
+                               render_mode="human",
+                               )
     else:
         print(f"\nFULLY OBSERVABLE MDP...")
         if quiet:
-            env = gym.make(env_type, render_mode=None)
+            env = gym.make(env_type,
+                           render_mode=None,
+                           )
         else:
-            env = gym.make(env_type, render_mode="human")
+            env = gym.make(env_type,
+                           render_mode="human",
+                           )
 
-   
     # track non-discounted returns automatically
     env = gym.wrappers.RecordEpisodeStatistics(env) 
 
@@ -453,39 +486,31 @@ def main() -> None:
     """
 
     # read in the options from the command line
-    args = readCommand(sys.argv[1:])
+    args = read_command(sys.argv[1:])
 
     # auto-convert new_agent to be lowercase
     if args.new_agent is not None:
         args.new_agent = args.new_agent.lower()
 
-    # user must specify an agent
-    if (args.new_agent is None) and (args.load_agent is None):
-        raise Exception("Must specify an agent to create or load.")
-    
-    # user cannot specify more than one agent
-    if args.new_agent and args.load_agent:
-        raise Exception("Can only run program with one agent.")
-
-    # user must specify an environment
-    if args.env_type is None:
-        raise Exception("Must specify an environment to create.")
+    # set the seed for packages before creating agents or envs
+    set_seed(args.seed)
 
     # create the environment
     print(f"\nCREATING ENVIRONMENT IN {args.env_type}...")
-    env = createEnv(env_type=args.env_type,
+    env = create_env(env_type=args.env_type,
                     quiet=args.quiet,
-                    the_pomdp=args.pomdp_env
+                    the_pomdp=args.pomdp_env,
                     )
 
     # create new agent and remember agent type
-    agent, agent_type = createAgent(new_agent=args.new_agent,
+    agent, agent_type = create_agent(new_agent=args.new_agent,
                                     load_agent=args.load_agent,
                                     env=env,
                                     alpha=args.alpha,
                                     gamma=args.gamma,
                                     buffer_size=args.buffer_size,
-                                    batch_size=args.batch_size
+                                    batch_size=args.batch_size,
+                                    the_seed=args.seed,
                                     )
 
 #    # add action normalizer wrapper to env if agent is custom ddpg
@@ -493,6 +518,7 @@ def main() -> None:
 #        env = ActionNormalizer(env)
 
     # train agent
+    env.reset(seed=args.seed)
     if args.num_train > 0:
         print(f"\nTRAINING AGENT FOR AT LEAST {args.num_train} STEPS...")
         agent.learn(total_timesteps=args.num_train,
@@ -503,7 +529,7 @@ def main() -> None:
     # save agent
     if args.save_agent:
         print(f"\nSAVING AGENT...")
-        saveAgent(agent=agent,
+        save_agent(agent=agent,
                   env=args.env_type,
                   load=args.load_agent,
                   agent_type=agent_type,
@@ -513,11 +539,12 @@ def main() -> None:
     # test agent
     if args.num_test > 0:
         print(f"\nTESTING AGENT FOR {args.num_test} EPISODES...")
-        runManyEpisodes(agent,
+        run_many_episdoes(agent,
                         env,
                         num_episodes=args.num_test,
                         agent_type=agent_type,
                         no_discount=args.no_discount,
+                        the_seed=args.seed,
                         ) 
 
     print("\nCLOSING WALKERS...\n\n")
@@ -525,6 +552,7 @@ def main() -> None:
 
 
 if __name__ == "__main__":
+
     """
     By defining a main() for this file,
     other main functions in the same directory
