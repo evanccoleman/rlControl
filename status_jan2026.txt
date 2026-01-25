@@ -1,14 +1,43 @@
-Date: Spring 2026
+DATE: Spring 2026
 
 ==================================
 
-SUMMARY OF FILES (since status_aug2025):
+GOAL:
+
+1. Does memory (LSTM) improve agent performance in continuous
+control environments?
+
+2. Does memory (LSTM) improve agent performance in POMDPs?
+
+==================================
+
+SUMMARY OF FILES: 
 
 walkers_v1.py --> loads agent from cli 
 walkers_v2.py --> load agent from paramsFiles/ 
-walkers_v3.py --> load LinghengMeng POMDP 
+walkers_v3.py --> load LinghengMeng POMDPWrapper class
 
-readme.txt --> status_aug2025.txt
+optimizer_v2.py --> finds best hyperparameters using Optuna
+getgraphs.py --> plots performance of a file of tuned
+                agents from test_agents/, testing them
+                in the same env
+
+custom_ddpg.py --> my attempt at writing a DDPG agent (compiles)
+
+requirements.txt --> Python packages needed
+
+Notes on personal progress:
+status_aug2025.txt
 status_jan2026.txt
 
 ==================================
+
+SUMMARY OF DIRECTORIES:
+
+agents.../ --> trained agents
+graphs/ --> output of getgraphs.py
+paramFiles/ --> tuned hyperparameters for agents
+test_agents/ --> files list names of trained agents for
+                getgraphs.py to evaluate
+tuned_agents_ant/ --> stores agents trained on
+                tuned hyperparameters

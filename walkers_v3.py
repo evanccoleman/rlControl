@@ -37,9 +37,9 @@ def read_command(argv) -> Namespace:
     usage_str = """
     USAGE:      python walkers_v3.py <options>
     EXAMPLES:   (1) python walkers_v3.py -n ppo -env Ant-v5 -i 10000 \
-            -k 10 -sq
+            -k 10 -sq --seed 12
                     - trains ppo agent in Ant-v5 for 10000 steps and \
-                            tests for 10 episodes
+                            tests for 10 episodes with seed 12
                     - also saves the agent and runs without rendering
                 (2) python walkers_v3.py -l agents_walkers/ppo_ant_10000\
                         .zip -env Ant-v5 -k 10 -p remove-velocity
@@ -232,7 +232,7 @@ def run_many_episdoes(agent,
                     num_episodes: int = 0,
                     agent_type: str = None,
                     no_discount: bool = False,
-                    the_seed: int = 42,
+                    seed: int = 42,
                     ) -> None: 
     """
     Runs all the episodes for testing mode.
@@ -249,7 +249,7 @@ def run_many_episdoes(agent,
     rewards = []
 
     # seed the environment for this run
-    env.reset(seed=the_seed)
+    env.reset(seed=seed)
 
     # run the episodes
     for i in range(1, num_episodes + 1):
@@ -284,7 +284,7 @@ def create_agent(new_agent: str = None,
                 gamma: int = None,
                 buffer_size: int = None,
                 batch_size: int = None,
-                the_seed: int = 42,
+                seed: int = 42,
                 ) -> tuple: 
     """
     Returns a tuple of (agent, agent_type) where an agent is
@@ -304,7 +304,7 @@ def create_agent(new_agent: str = None,
                     learning_rate=alpha,
                     gamma=gamma,
                     batch_size=batch_size,
-                    seed=the_seed,
+                    seed=seed,
                     )
         agent_type = "ppo"
 
@@ -321,7 +321,7 @@ def create_agent(new_agent: str = None,
                      gamma=gamma,
                      batch_size=batch_size,
                      buffer_size=buffer_size,
-                     seed=the_seed,
+                     seed=seed,
                      )
         agent_type = "ddpg"
 
@@ -338,7 +338,7 @@ def create_agent(new_agent: str = None,
                     gamma=gamma,
                     batch_size=batch_size,
                     buffer_size=buffer_size,
-                    seed=the_seed,
+                    seed=seed,
                     )
         agent_type = "td3"
 
@@ -349,7 +349,7 @@ def create_agent(new_agent: str = None,
                     gamma=gamma,
                     batch_size=batch_size,
                     buffer_size=buffer_size,
-                    seed=the_seed,
+                    seed=seed,
                     )
         agent_type = "sac"
 
@@ -359,7 +359,7 @@ def create_agent(new_agent: str = None,
                              learning_rate=alpha,
                              gamma=gamma,
                              batch_size=batch_size,
-                             seed=the_seed,
+                             seed=seed,
                              )
         agent_type = "rppo"
         
@@ -382,19 +382,19 @@ def create_agent(new_agent: str = None,
         # actually load in agent now
         if agent_type == "ppo":
             print(f"\nLOADING PPO AGENT '{load_agent}'...\n")
-            agent = PPO.load(load_agent, env=env, seed=the_seed)
+            agent = PPO.load(load_agent, env=env, seed=seed)
         elif agent_type == "ddpg":
             print(f"\nLOADING DDPG AGENT '{load_agent}'...\n")
-            agent = DDPG.load(load_agent, env=env, seed=the_seed)
+            agent = DDPG.load(load_agent, env=env, seed=seed)
         elif agent_type == "td3":
             print(f"\nLOADING TD3 AGENT '{load_agent}'...\n")
-            agent = TD3.load(load_agent, env=env, seed=the_seed)
+            agent = TD3.load(load_agent, env=env, seed=seed)
         elif agent_type == "sac":
             print(f"\nLOADING SAC AGENT '{load_agent}'...\n")
-            agent = SAC.load(load_agent, env=env, seed=the_seed)
+            agent = SAC.load(load_agent, env=env, seed=seed)
         elif agent_type == "rppo":
             print(f"\nLOADING RPPO AGENT '{load_agent}'...\n")
-            agent = RecurrentPPO.load(load_agent, env=env, seed=the_seed)
+            agent = RecurrentPPO.load(load_agent, env=env, seed=seed)
         else:
             raise Exception(f"Agent {agent_type} not implemented.")
 
@@ -453,7 +453,7 @@ def create_env(env_type: str,
 
     # decide if environment is POMDP and/or is rendered
     if the_pomdp != None:
-        print(f"\nPOMDP TYPE: {the_pomdp}...")
+        print(f"\nPOMDP TYPE: '{the_pomdp}'...")
         if quiet:
             env = POMDPWrapper(env_type,
                                pomdp_type=the_pomdp,
@@ -482,7 +482,7 @@ def create_env(env_type: str,
 
 def main() -> None:
     """
-    Runs walkers_v1.py
+    Runs walkers_v3.py
     """
 
     # read in the options from the command line
@@ -496,11 +496,13 @@ def main() -> None:
     set_seed(args.seed)
 
     # create the environment
-    print(f"\nCREATING ENVIRONMENT IN {args.env_type}...")
+    print(f"\nCREATING ENVIRONMENT IN '{args.env_type}'...")
     env = create_env(env_type=args.env_type,
                     quiet=args.quiet,
                     the_pomdp=args.pomdp_env,
                     )
+
+    print(f"\nSEEDING WITH {args.seed}...")
 
     # create new agent and remember agent type
     agent, agent_type = create_agent(new_agent=args.new_agent,
@@ -510,7 +512,7 @@ def main() -> None:
                                     gamma=args.gamma,
                                     buffer_size=args.buffer_size,
                                     batch_size=args.batch_size,
-                                    the_seed=args.seed,
+                                    seed=args.seed,
                                     )
 
 #    # add action normalizer wrapper to env if agent is custom ddpg
@@ -530,7 +532,7 @@ def main() -> None:
     if args.save_agent:
         print(f"\nSAVING AGENT...")
         save_agent(agent=agent,
-                  env=args.env_type,
+                  env_type=args.env_type,
                   load=args.load_agent,
                   agent_type=agent_type,
                   num_train=args.num_train,
@@ -544,7 +546,7 @@ def main() -> None:
                         num_episodes=args.num_test,
                         agent_type=agent_type,
                         no_discount=args.no_discount,
-                        the_seed=args.seed,
+                        seed=args.seed,
                         ) 
 
     print("\nCLOSING WALKERS...\n\n")
