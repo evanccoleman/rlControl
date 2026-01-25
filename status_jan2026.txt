@@ -2,6 +2,18 @@ DATE: Spring 2026
 
 ==================================
 
+OVERVIEW:
+
+Get proper packages...
+pip install -r requirements.txt
+
+What is implemented...
+- Various Stable-Baselines3 agents
+- Gymnasium environments
+- POMDPWrapper class
+
+==================================
+
 GOAL:
 
 1. Does memory (LSTM) improve agent performance in continuous

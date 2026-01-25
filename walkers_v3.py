@@ -1,6 +1,6 @@
 # walkers_v3.py
 
-# random module and PyTorch for seeing
+# random module and PyTorch for seeding
 import random
 import torch
 
@@ -21,7 +21,7 @@ from stable_baselines3 import PPO, DDPG, SAC, TD3
 from stable_baselines3.common.noise import NormalActionNoise
 from sb3_contrib import RecurrentPPO
 
-# POMDP wrapper
+# POMDPWrapper
 from pomdp_wrapper import POMDPWrapper
 
 # custom agents
@@ -36,15 +36,15 @@ def read_command(argv) -> Namespace:
     # instructions for how to run walkers_v1.py found using -h
     usage_str = """
     USAGE:      python walkers_v3.py <options>
-    EXAMPLES:   (1) python walkers_v3.py -n ppo -env Ant-v5 -i 10000 \
-            -k 10 -sq --seed 12
+    EXAMPLES:   (1) python walkers_v3.py -n ppo -e Ant-v5 -i 10000 \
+                         -k 10 -sq --seed 12
                     - trains ppo agent in Ant-v5 for 10000 steps and \
-                            tests for 10 episodes with seed 12
+                        tests for 10 episodes with seed 12
                     - also saves the agent and runs without rendering
                 (2) python walkers_v3.py -l agents_walkers/ppo_ant_10000\
-                        .zip -env Ant-v5 -k 10 -p remove-velocity
+                        .zip -e Ant-v5 -k 10 -p remove_velocity
                     - loads a ppo agent into Ant-v5 and tests for 10 \
-                            episodes with rendering in a pomdp
+                        episodes with rendering in a pomdp
     """
 
     # create the argument parser
@@ -77,7 +77,8 @@ def read_command(argv) -> Namespace:
                                 Types include remove_velocity,\
                                 flickering, random_noise, \
                                 random_sensor_missing, or some combo \
-                                (refer to POMDPWrapper() constructor)")
+                                (refer to POMDPWrapper() constructor \
+                                for more)")
     parser.add_argument("--seed",
                         type=int, default=42,
                         help="Seed to use for the agent, environment, \
@@ -103,7 +104,7 @@ def read_command(argv) -> Namespace:
                                 when option is present).")
 
     # options for agent hyperparameters
-    parser.add_argument("--alpha",
+   parser.add_argument("--alpha",
                         type=int, default=0.001,
                         metavar="A", help="The learning rate (default 0.001).")
     parser.add_argument("--gamma",
@@ -115,12 +116,19 @@ def read_command(argv) -> Namespace:
                                 buffer (default 10^6).")
     parser.add_argument("--batch_size",
                         type=int, default=256,
-                        metavar="BATCH", help="The size of minibatches (default 256).")
+                        metavar="BATCH", help="The size of minibatches \
+                                (default 256).")
 
     # return the parsed arguments
     return parser.parse_args()
 
 def set_seed(seed):
+    """
+    Sets the seed for Python packages.
+
+    Ensures consistent seeding.
+    """
+
     # for Python's built-in random module
     random.seed(seed)
 
@@ -133,6 +141,8 @@ def set_seed(seed):
 
 def turn_off_training_mode(agent):
     """
+    Turns off training mode for an agent.
+
     Sets the agent's learning rate and action noise
     (if any) to 0.
     """
@@ -141,6 +151,8 @@ def turn_off_training_mode(agent):
 
 def restore_training_mode(agent, alpha_and_noise):
     """
+    Restores training mode for an agent.
+
     Restores the agent's learning rate and action noise
     (if any) to the originals.
     """
@@ -148,12 +160,13 @@ def restore_training_mode(agent, alpha_and_noise):
     agent.action_noise = alpha_and_noise[1]
 
 def run_episode(agent,
-               env: gym.Env,
-               no_discount: bool = False,
-               ) -> int:
+                env: gym.Env,
+                no_discount: bool = False,
+                ) -> int:
     """
-    Runs a single episode for an agent without LSTM.
-    Returns the episode returns.
+    Executes a single episode for an agent without LSTM.
+
+    Returns the episode rewards.
     """
 
     obs, info = env.reset() # reset env
@@ -185,12 +198,13 @@ def run_episode(agent,
         return episode_rewards 
 
 def run_episode_lstm(agent,
-                   env: gym.Env,
-                   no_discount: bool = False,
-                   ) -> int:
+                     env: gym.Env,
+                     no_discount: bool = False,
+                     ) -> int:
     """
-    Runs a single episode for an agent with LSTM.
-    Returns the episode returns.
+    Executes a single episode for an agent with LSTM.
+
+    Returns the episode rewards.
     """
 
     obs, info = env.reset() # reset env
@@ -227,16 +241,17 @@ def run_episode_lstm(agent,
     else:
         return episode_rewards 
 
-def run_many_episdoes(agent,
-                    env,
-                    num_episodes: int = 0,
-                    agent_type: str = None,
-                    no_discount: bool = False,
-                    seed: int = 42,
-                    ) -> None: 
+def run_many_episodes(agent,
+                      env,
+                      num_episodes: int = 0,
+                      agent_type: str = None,
+                      no_discount: bool = False,
+                      seed: int = 42,
+                      ) -> None: 
     """
-    Runs all the episodes for testing mode.
-    Reports the average returns from testing.
+    Executes episodes in testing mode for an agent.
+
+    Reports the average returns from the testing run.
     """
 
     print(f"\nBEGINNING TESTING FOR {num_episodes} EPISODES...")
@@ -278,20 +293,20 @@ def run_many_episdoes(agent,
     print(f"avg reward : {avg_reward:.3f}")
 
 def create_agent(new_agent: str = None,
-                load_agent: str = None,
-                env=None,
-                alpha: int = None,
-                gamma: int = None,
-                buffer_size: int = None,
-                batch_size: int = None,
-                seed: int = 42,
-                ) -> tuple: 
+                 load_agent: str = None,
+                 env=None,
+                 alpha: int = None,
+                 gamma: int = None,
+                 buffer_size: int = None,
+                 batch_size: int = None,
+                 seed: int = 42,
+                 ) -> tuple: 
     """
-    Returns a tuple of (agent, agent_type) where an agent is
-    created fresh or a pre-existing one is loaded and 
-    the type of agent is stored for program purposes.
-    If the specified agent is not defined, an error is
-    raised saying so.
+    Creates a new agent or loads a pre-existing one.
+
+    Returns a tuple of (agent, agent_type). The agent_type
+    string is useful for naming files and checking types
+    elsewhere.
     """
 
     agent = None        # store agent to return here
@@ -402,16 +417,16 @@ def create_agent(new_agent: str = None,
     return agent, agent_type
 
 def save_agent(agent=None,
-              env_type: str = None,
-              load: str = None,
-              agent_type: str = None,
-              num_train=None,
-              ) -> None:
+               env_type: str = None,
+               load: str = None,
+               agent_type: str = None,
+               num_train=None,
+               ) -> None:
     """
-    Save a loaded agent or a fresh agent and
-    auto-generate the save name according to
-    a pattern like:
-    'agents_ant/ppo_ant_10000.zip'
+    Saves a new agent or a loaded agent.
+
+    The agent is saved under a name according to
+    a pattern like: 'agents_ant/ppo_ant_10000.zip'
     """
 
     # saving a fresh agent
@@ -441,11 +456,11 @@ def save_agent(agent=None,
         agent.save(save_name)
 
 def create_env(env_type: str,
-              quiet: bool,
-              the_pomdp: str,
-              ):
+               quiet: bool,
+               the_pomdp: str,
+               ):
     """
-    Creates a gymnasium environment.
+    Creates a Gymnasium environment.
 
     Can make the environment partially observable
     using the POMDPWrapper class.
@@ -482,7 +497,7 @@ def create_env(env_type: str,
 
 def main() -> None:
     """
-    Runs walkers_v3.py
+    Runs walkers_v3.py.
     """
 
     # read in the options from the command line
@@ -498,22 +513,22 @@ def main() -> None:
     # create the environment
     print(f"\nCREATING ENVIRONMENT IN '{args.env_type}'...")
     env = create_env(env_type=args.env_type,
-                    quiet=args.quiet,
-                    the_pomdp=args.pomdp_env,
-                    )
+                     quiet=args.quiet,
+                     the_pomdp=args.pomdp_env,
+                     )
 
     print(f"\nSEEDING WITH {args.seed}...")
 
     # create new agent and remember agent type
     agent, agent_type = create_agent(new_agent=args.new_agent,
-                                    load_agent=args.load_agent,
-                                    env=env,
-                                    alpha=args.alpha,
-                                    gamma=args.gamma,
-                                    buffer_size=args.buffer_size,
-                                    batch_size=args.batch_size,
-                                    seed=args.seed,
-                                    )
+                                     load_agent=args.load_agent,
+                                     env=env,
+                                     alpha=args.alpha,
+                                     gamma=args.gamma,
+                                     buffer_size=args.buffer_size,
+                                     batch_size=args.batch_size,
+                                     seed=args.seed,
+                                     )
 
 #    # add action normalizer wrapper to env if agent is custom ddpg
 #    if agent_type == "customddpg":
@@ -532,22 +547,22 @@ def main() -> None:
     if args.save_agent:
         print(f"\nSAVING AGENT...")
         save_agent(agent=agent,
-                  env_type=args.env_type,
-                  load=args.load_agent,
-                  agent_type=agent_type,
-                  num_train=args.num_train,
-                  )
+                   env_type=args.env_type,
+                   load=args.load_agent,
+                   agent_type=agent_type,
+                   num_train=args.num_train,
+                   )
 
     # test agent
     if args.num_test > 0:
         print(f"\nTESTING AGENT FOR {args.num_test} EPISODES...")
-        run_many_episdoes(agent,
-                        env,
-                        num_episodes=args.num_test,
-                        agent_type=agent_type,
-                        no_discount=args.no_discount,
-                        seed=args.seed,
-                        ) 
+        run_many_episodes(agent,
+                          env,
+                          num_episodes=args.num_test,
+                          agent_type=agent_type,
+                          no_discount=args.no_discount,
+                          seed=args.seed,
+                          ) 
 
     print("\nCLOSING WALKERS...\n\n")
     env.close()
@@ -556,7 +571,7 @@ def main() -> None:
 if __name__ == "__main__":
 
     """
-    By defining a main() for this file,
+    Note to self: by defining a main() for this file,
     other main functions in the same directory
     are isolated from each other, so I can run
     particular .py files when I want.
