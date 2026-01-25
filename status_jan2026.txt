@@ -30,7 +30,7 @@ walkers_v1.py --> loads agent from cli
 walkers_v2.py --> load agent from paramsFiles/ 
                   (keep to reference to loading parameters)
 walkers_v3.py --> load LinghengMeng POMDPWrapper class
-                  (current walkers_v3.py)
+walkers_v4.py --> run multiple randomly seeded envs
 
 optimizer_v2.py --> finds best hyperparameters using Optuna
 getgraphs.py --> plots performance of a file of tuned
@@ -56,3 +56,4 @@ test_agents/ --> files list names of trained agents for
                 getgraphs.py to evaluate
 tuned_agents_ant/ --> stores agents trained on
                 tuned hyperparameters
+avgs/ --> average rewards and env details 
