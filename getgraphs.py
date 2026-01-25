@@ -18,9 +18,6 @@ from stable_baselines3 import PPO, DDPG, SAC, TD3
 from stable_baselines3.common.noise import NormalActionNoise
 from sb3_contrib import RecurrentPPO
 
-# custom statemaskingwrapper
-from statemaskingwrapper import StateMaskingWrapper
-
 def getMovingAvgs(arr, window, convolution_mode):
      """
      Compute moving average to smooth noisy data.
@@ -33,7 +30,6 @@ def getMovingAvgs(arr, window, convolution_mode):
 
 def getPerformancePlots(envs: dict = None,
                         env_type: str = None,
-                        is_masking: bool = False,
                         roll_length: int = 0,
                         ):
     """
@@ -114,13 +110,6 @@ def readCommand(argv) -> Namespace:
                         action="store_true",
                         help="Whether to render env (default False, \
                                 True when option is present).")
-    parser.add_argument("-m", "--mask_indices",
-                        type=int, default=None,
-                        metavar="M", help="Whether to mask indices in the \
-                                observation space and make the env \
-                                a POMDP (default None). If masking, give an \
-                                integer, and all observations up to that index \
-                                (exclusive) will be removed.")
     parser.add_argument("--no_discount",
                         action="store_true",
                         help="Whether to discount rewards in testing \
@@ -315,14 +304,9 @@ def loadAgent(agent_to_load: str = None,
 
 def createEnv(env_type: str,
               quiet: bool,
-              num_masks: int, 
               ):
     """
     Creates a gymnasium env.
-
-    If masking some observations to artifically
-    create a POMDP, a list of indices to mask is 
-    created using num_masks.
     """
     env = None
 
@@ -334,20 +318,6 @@ def createEnv(env_type: str,
     
     # track non-discounted returns automatically
     env = gym.wrappers.RecordEpisodeStatistics(env) 
-
-    # debug print for masking
-    # print(env.observation_space.shape)
-
-    # mask observation space
-    if num_masks is not None:
-        env = StateMaskingWrapper(env,
-                                  indices_to_mask=np.arange(num_masks),
-                                  )
-
-    # debug print for masking
-    # obs, info = env.reset()
-    # print(obs.shape)
-    # exit()
 
     return env
 
@@ -386,7 +356,6 @@ def main() -> None:
             print(f"\n\nCREATING ENVIRONMENT IN {args.env_type}...")
             env = createEnv(env_type=args.env_type,
                             quiet=args.quiet,
-                            num_masks=args.mask_indices,
                             )
 
             # create new agent and remember agent type
@@ -411,14 +380,8 @@ def main() -> None:
             env.close()
 
     # create a plot of the env performances
-    is_masking = None
-    if args.mask_indices is None:
-        is_masking = False
-    else:
-        is_masking = True
     getPerformancePlots(envs=five_envs,
                         env_type=args.env_type,
-                        is_masking=is_masking,
                         roll_length=args.roll_length,
                         )
 

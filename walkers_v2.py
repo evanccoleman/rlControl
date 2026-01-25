@@ -17,9 +17,6 @@ from stable_baselines3 import PPO, DDPG, SAC, TD3
 from stable_baselines3.common.noise import NormalActionNoise
 from sb3_contrib import RecurrentPPO
 
-# custom statemaskingwrapper
-from statemaskingwrapper import StateMaskingWrapper
-
 # custom agents
 # from custom_ddpg import CustomDDPG, ActionNormalizer
 
