@@ -26,8 +26,11 @@ control environments?
 SUMMARY OF FILES: 
 
 walkers_v1.py --> loads agent from cli 
+                  (keep to show progress)
 walkers_v2.py --> load agent from paramsFiles/ 
+                  (keep to reference to loading parameters)
 walkers_v3.py --> load LinghengMeng POMDPWrapper class
+                  (current walkers_v3.py)
 
 optimizer_v2.py --> finds best hyperparameters using Optuna
 getgraphs.py --> plots performance of a file of tuned
