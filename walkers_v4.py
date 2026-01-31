@@ -1,18 +1,23 @@
-# walkers_v4.py
+ # walkers_v4.py
 
-# random module and PyTorch for seeding
+# random and PyTorch for seeding
 import random
 import torch
+
+# array for creating an array
 import array
 
 # good ol' numpy
 import numpy as np
 
-# gymnasium
+# datetime for datetime type
+from datetime import datetime as dt
+
+# gymnasium envs
 import gymnasium as gym                     
 from gymnasium.spaces import Box
 
-# parser stuff
+# argparse and sys for command line args
 import argparse 
 from argparse import Namespace
 import sys 
@@ -575,7 +580,7 @@ def main() -> None:
                              )
 
         # change where rollout output from stable_baselines3 logger goes
-        agent.set_logger(configure("", []))
+        agent.set_logger(configure(None, []))
 
 #    # add action normalizer wrapper to env if agent is custom ddpg
 #    if agent_type == "customddpg":
@@ -627,8 +632,13 @@ def main() -> None:
     # calculate average of performance across randomly generated seeds
     final_avgs = np.mean(all_agent_avgs, axis=0)
 
+    # create output file name
+    env_type = args.env_type.split("-")[0].lower()
+    current_datetime = dt.now().strftime("%Y-%m-%d_%H-%M-%S")
+    output_filename = f"{agent_type}_{env_type}_{current_datetime}"
+
     # write to output file
-    write_output(output_filename="ppo_ant",
+    write_output(output_filename=output_filename,
                  the_dict=details,
                  oned_nparray=final_avgs,
                  twod_nparray=all_agent_avgs,
