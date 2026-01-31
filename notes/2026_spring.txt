@@ -1,0 +1,49 @@
+DATE: Spring 2026
+
+==================================
+
+OVERVIEW:
+
+Get proper packages...
+pip install -r requirements.txt
+
+What is implemented...
+- Various Stable-Baselines3 agents
+- Gymnasium environments
+- POMDPWrapper class
+
+==================================
+
+GOAL:
+
+1. Does memory (LSTM) improve agent performance in continuous
+control environments?
+
+2. Does memory (LSTM) improve agent performance in POMDPs?
+
+==================================
+
+SUMMARY OF FIELS AND DIRECTORIES:
+
+old_agents/ --> agents trained on pc
+
+old_walkers/ 
+walkers_v1.py --> loads agent from cli 
+walkers_v2.py --> load agent from param_files/ 
+walkers_v3.py --> load LinghengMeng POMDPWrapper class
+walkers_v4.py --> run multiple randomly seeded envs
+
+old_stuff/ --> misc old stuff
+optimizer_v2.py --> finds best hyperparameters using Optuna
+getgraphs.py --> plots performance of a file of tuned agents from test_agents/
+custom_ddpg.py --> my attempt at writing a DDPG agent (compiles)
+
+old_stuff/test_agents --> list of tuned agents for getgraphs.py to evaluate
+old_stuff/tuned_agents_ant --> tuned and trained agents
+
+notes/ --> personal notes
+
+run/ --> for running stuff
+run/graphs --> stores graphs
+run/param_files --> stores hyperparameters to try for new agents
+run/outputs --> output from walkers_v5.py
