@@ -36,6 +36,10 @@ def main() -> None:
         env_type_short = args.env_type.split("-")[0].lower()
         ispomdp = "pomdp" if args.pomdp_type is not None else "mdp"
 
+    # create output filename
+    current_datetime = dt.now().strftime("%Y-%m-%d_%H-%M-%S")
+    output_filename = f"{agent_type}_{env_type_short}_{current_datetime}"
+
     # randomly generate seeds
     # first half for training, second half for testing
     seeds = array.array("i",
@@ -48,7 +52,8 @@ def main() -> None:
     test_seeds = seeds[len(seeds)//2:]
 
     # note the details of this program run
-    details = {"seeds" : seeds,
+    details = {"current_datetime": current_datetime,
+               "seeds" : seeds,
                "train_seeds" : train_seeds,
                "test_seeds" : test_seeds,
                "agent_type" : args.agent_type,
@@ -147,12 +152,6 @@ def main() -> None:
 
     # calculate average of performance across randomly generated seeds
     final_avgs = np.mean(all_agent_avgs, axis=0)
-
-    # create output file name
-    env_type = args.env_type.split("-")[0].lower()
-    current_datetime = dt.now().strftime("%Y-%m-%d_%H-%M-%S")
-    details["current_datetime"] = current_datetime
-    output_filename = f"{agent_type}_{env_type}_{current_datetime}"
 
     # write to output file
     write_output(output_filename=output_filename,

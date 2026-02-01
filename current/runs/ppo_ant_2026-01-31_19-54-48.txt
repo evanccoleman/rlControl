@@ -1,0 +1,22 @@
+current_datetime : 2026-01-31_19-54-48
+seeds : array('i', [58, 14, 31, 2])
+train_seeds : array('i', [58, 14])
+test_seeds : array('i', [31, 2])
+agent_type : ppo
+load_agent : None
+save_agent : True
+env_type : Ant-v5
+pomdp_type : remove_velocity
+hyperparameters_file : None
+num_agent_env_pairs : 2
+num_train : 10000
+training_interval : 1000
+num_test : 5
+quiet : True
+no_discount : False
+*****
+95.2533015529878 
+*****
+86.92481973574509 
+103.58178337023051 
+*****
