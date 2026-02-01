@@ -7,7 +7,9 @@ import numpy as np
 from datetime import datetime as dt
 import sys
 
+from stable_baselines3.common.callbacks import EvalCallback
 from stable_baselines3.common.logger import configure
+from stable_baselines3.common.monitor import Monitor
 
 from config import read_command, MAX_STEPS_TO_TRAIN
 from agents import create_agent, save_agent
@@ -97,9 +99,29 @@ def main() -> None:
         # change where rollout output from stable_baselines3 logger goes
         agent.set_logger(configure(None, []))
 
+        # create eval environment and callback for logging
+        # seed the eval_env with a seed outside the [0, 100)
+        # train/test seed rgn
+        eval_env = create_env(env_type=args.env_type,
+                              quiet=True,
+                              pomdp_type=args.pomdp_type,
+                              )
+        eval_env = Monitor(eval_env)
+        eval_env.reset(seed=seeds[i] + 100)
+        callback_path = (f"callbacks/{output_filename}/"
+                         f"agent{i}_seed{seeds[i]}")
+        eval_callback = EvalCallback(eval_env,
+                                     best_model_save_path=None,
+                                     log_path=callback_path,
+                                     eval_freq=args.training_interval,
+                                     n_eval_episodes=args.num_test,
+                                     verbose=0
+                                     )
+
         # first round of training
         # already reset env after creation
-        agent.learn(total_timesteps=args.num_train)
+        agent.learn(total_timesteps=args.num_train,
+                    callback=eval_callback)
         training_rng_state = env.np_random.bit_generator.state
 
         # first round of testing
@@ -121,7 +143,8 @@ def main() -> None:
             # round of training
             env.np_random.bit_generator.state = training_rng_state
             env.reset()
-            agent.learn(total_timesteps=args.training_interval)
+            agent.learn(total_timesteps=args.training_interval,
+                        callback=eval_callback)
             training_rng_state = env.np_random.bit_generator.state
 
             # round of testing
@@ -137,7 +160,8 @@ def main() -> None:
             j += 1
             testing_rng_state = env.np_random.bit_generator.state
 
-       # close env
+       # close envs
+        eval_env.close()
         env.close()
 
         # save agents if applicable
