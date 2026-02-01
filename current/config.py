@@ -14,17 +14,28 @@ def read_command(argv) -> Namespace:
     # instructions for how to run walkers_v5.py found using -h
     usage_str = """
     USAGE:      python walkers_v5.py <options>
-    EXAMPLES:   (1) python walkers_v5.py -a ppo -e Ant-v5 -i 10000 \
-                    -k 10 -sq -p remove_velocity
-                      - trains ppo agent in Ant-v5 for 10000 steps and \
-                        tests for 10 episodes
-                      - also saves the agent and runs without rendering
-                      - env is pomdp where velocity is removed
-                (2) python walkers_v5.py -l agents_walkers/ppo_ant_10000\
-                    .zip -e Ant-v5 -k 10
-                      - loads a ppo agent into Ant-v5 and tests for 10 \
-                        episodes with rendering
-                      - if pomdp, can only load pomdp agents
+    NOTE:       POMDP envs should only have POMDP agents.
+                Basically, you can either use -a or -l, not both.
+    EXAMPLES:   (1) python walkers_v5.py
+                        -a {agent_type}
+                        -e {env_type}
+                        -i {num_training}
+                        -k {num_testing}
+                        -p {pomdp_type}
+                        -f {param_files/hyperparameters_file}
+                        -s (saves)
+                        -q (quiet)
+                        -n (no discounting)
+                (2) python walkers_v5.py
+                        -l {../saved_agents/filename}
+                        -e {env_type}
+                        -i {num_training}
+                        -k {num_testing}
+                        -p {pomdp_type}
+                        -f {param_files/hyperparameters_file}
+                        -s (saves)
+                        -q (quiet)
+                        -n (no discounting)
     """
 
     # create the argument parser

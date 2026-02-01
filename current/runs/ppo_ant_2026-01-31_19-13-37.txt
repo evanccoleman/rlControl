@@ -1,0 +1,22 @@
+seeds : array('i', [9, 79, 59, 95])
+train_seeds : array('i', [9, 79])
+test_seeds : array('i', [59, 95])
+agent_type : None
+load_agent : ../saved_agents/ppo_ant_10000.zip
+save_agent : True
+env_type : Ant-v5
+pomdp_type : None
+hyperparameters_file : None
+num_agent_env_pairs : 2
+num_train : 10000
+training_interval : 1000
+num_test : 5
+quiet : True
+no_discount : False
+current_datetime : 2026-01-31_19-13-37
+*****
+20.20352228529844 
+*****
+18.822647587817393 
+21.584396982779488 
+*****

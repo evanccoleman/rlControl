@@ -1,6 +1,7 @@
 # agents.py
 
 import numpy as np
+from datetime import datetime as dt
 
 from stable_baselines3 import PPO, DDPG, SAC, TD3
 from stable_baselines3.common.noise import NormalActionNoise
@@ -63,8 +64,8 @@ def create_agent(agent_type: str = None,
 
         # create a new agent with the given hyperparameters
         if agent_type == "ppo":
-            n_steps = 2 ** param_settings["n_steps_exponent"]
-            del param_settings["n_steps_exponent"]
+            # n_steps = 2 ** param_settings["n_steps_exponent"]
+            # del param_settings["n_steps_exponent"]
             agent = PPO("MlpPolicy",
                         env,
                         seed=seed,
@@ -114,40 +115,34 @@ def create_agent(agent_type: str = None,
     return agent
 
 def save_agent(agent=None,
-               env_type: str = None,
+               env_type_short: str = None,
                load: str = None,
                agent_type: str = None,
+               ispomdp: str = None,
                num_train=None,
                ) -> None:
     """
     Saves a new agent or a loaded agent.
 
-    The agent is saved under a name according to
-    a pattern like: 'agents_ant/ppo_ant_10000.zip'
+    The agent is saved under a name like:
+    'saved_agents/ppo_ant_mdp_10000_2026-01-31_14-30-22.zip'
     """
 
-    # saving a fresh agent
-    if load is None:
-        # create save name
-        the_env = env_type.split("-")[0]
-        the_env = the_env.lower()
-        save_name = "agents_" + the_env + "/" + \
-                agent_type + "_" + the_env + "_" + str(num_train) + ".zip"
+    current_datetime = dt.now().strftime("%Y-%m-%d_%H-%M-%S")
 
-        print(f"\nSAVING AGENT TO '{save_name}'...")
-        agent.save(save_name)
+    # if loading, add old steps to new steps
+    if load is not None:
+        # filename format: {agent_type}_{env_type}_{ispomdp}_{steps}_{datetime}.zip
+        old_num_train = int(load.split("/")[-1].split("_")[3])
+        num_train = num_train + old_num_train
 
-    # saving a loaded agent
-    else:
-        # update number of steps trained in save name
-        old_num_train = int(load.split("/")[1].split("_")[2].split(".")[0])
-        new_num_train = num_train + old_num_train
+    save_name = r"../saved_agents/" + \
+            agent_type + \
+            "_" + env_type_short + \
+            "_" + ispomdp + \
+            "_" + str(num_train) + \
+            "_" + current_datetime + \
+            ".zip"
 
-        # create save name
-        the_env = env_type.split("-")[0]
-        the_env = the_env.lower()
-        save_name = "agents_" + the_env + "/" + \
-                agent_type + "_" + the_env + "_" + str(new_num_train) + ".zip"
-
-        print(f"\nSAVING AGENT TO '{save_name}'...")
-        agent.save(save_name)
+    print(f"\nSAVING AGENT TO '{save_name}'...")
+    agent.save(save_name)

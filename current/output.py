@@ -11,7 +11,7 @@ def write_output(output_filename: str = None,
     Writes the given variables to an output file.
     """
 
-    output_path = "avgs/" + output_filename + ".txt"
+    output_path = "runs/" + output_filename + ".txt"
     with open(output_path, mode="w", encoding="utf-8") as out_file:
 
         for key, value in the_dict.items():

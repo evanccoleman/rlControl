@@ -1,0 +1,22 @@
+seeds : array('i', [26, 78, 20, 57])
+train_seeds : array('i', [26, 78])
+test_seeds : array('i', [20, 57])
+agent_type : None
+load_agent : ../saved_agents/ppo_halfcheetah_mdp_10000_2026-01-31_19-26-50.zip
+save_agent : True
+env_type : HalfCheetah-v5
+pomdp_type : None
+hyperparameters_file : None
+num_agent_env_pairs : 2
+num_train : 10000
+training_interval : 1000
+num_test : 5
+quiet : True
+no_discount : False
+current_datetime : 2026-01-31_19-27-41
+*****
+10.989557453691353 
+*****
+21.938925774906227 
+0.04018913247647724 
+*****

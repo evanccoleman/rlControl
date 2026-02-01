@@ -10,7 +10,7 @@ import sys
 from stable_baselines3.common.logger import configure
 
 from config import read_command, MAX_STEPS_TO_TRAIN
-from agents import create_agent
+from agents import create_agent, save_agent
 from environments import create_env
 from episodes import run_many_episodes, set_seed
 from output import write_output
@@ -23,11 +23,18 @@ def main() -> None:
     # read in the options from the command line
     args = read_command(sys.argv[1:])
 
-    # convert agent_type to be lowercase
+    # filename format: {agent_type}_{env_type}_{ispomdp}_{steps}_{datetime}.zip
+    # parse: agent_type, env_type, env_type_short, and ispomdp
     if args.load_agent:
-        agent_type = args.load_agent.split("/")[1].split("_", 1)[0]
+        filename = args.load_agent.split("/")[-1]
+        parts = filename.split("_")
+        agent_type = parts[0]
+        env_type_short = parts[1]
+        ispomdp = parts[2]
     else:
         agent_type = args.agent_type.lower()
+        env_type_short = args.env_type.split("-")[0].lower()
+        ispomdp = "pomdp" if args.pomdp_type is not None else "mdp"
 
     # randomly generate seeds
     # first half for training, second half for testing
@@ -36,7 +43,14 @@ def main() -> None:
                                       k=2*args.num_agent_env_pairs),
                         )
 
+    # note the train seeds and test seeds
+    train_seeds = seeds[:len(seeds)//2]
+    test_seeds = seeds[len(seeds)//2:]
+
+    # note the details of this program run
     details = {"seeds" : seeds,
+               "train_seeds" : train_seeds,
+               "test_seeds" : test_seeds,
                "agent_type" : args.agent_type,
                "load_agent" : args.load_agent,
                "save_agent" : args.save_agent,
@@ -121,12 +135,23 @@ def main() -> None:
        # close env
         env.close()
 
+        # save agents if applicable
+        if args.save_agent:
+            save_agent(agent=agent,
+                       env_type_short=env_type_short,
+                       load=args.load_agent,
+                       agent_type=agent_type,
+                       ispomdp=ispomdp,
+                       num_train=args.num_train,
+                       )
+
     # calculate average of performance across randomly generated seeds
     final_avgs = np.mean(all_agent_avgs, axis=0)
 
     # create output file name
     env_type = args.env_type.split("-")[0].lower()
     current_datetime = dt.now().strftime("%Y-%m-%d_%H-%M-%S")
+    details["current_datetime"] = current_datetime
     output_filename = f"{agent_type}_{env_type}_{current_datetime}"
 
     # write to output file
