@@ -1,0 +1,22 @@
+current_datetime : 2026-02-06_14-40-09
+seeds : array('i', [15, 11, 48, 36])
+train_seeds : array('i', [15, 11])
+test_seeds : array('i', [48, 36])
+agent_type : ppo
+load_agent : None
+save_agent : True
+env_type : HalfCheetah-v5
+pomdp_type : remove_velocity
+hyperparameters_file : None
+num_agent_env_pairs : 2
+num_train : 5000
+training_interval : 1000
+num_test : 10
+quiet : True
+no_discount : False
+*****
+-0.4733424347432905 -0.22205994580488192 -0.37627616054247454 -0.35299851191967013 -0.7080151703997966 -0.4483928069070284 
+*****
+-0.47547364418526694 -0.12473633954095258 -0.22352625771478998 -0.04106074816232465 -0.6942196265444933 -0.3704472079790334 
+-0.47121122530131415 -0.31938355206881125 -0.5290260633701591 -0.6649362756770156 -0.7218107142550999 -0.5263384058350233 
+*****

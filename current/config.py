@@ -96,7 +96,7 @@ def read_command(argv) -> Namespace:
                                 True when option is present). \
                                 Seed is not saved. \
                                 If True, a save name is auto-generated.")
-   parser.add_argument("-d", "--no_discount",
+    parser.add_argument("-d", "--no_discount",
                         action="store_true",
                         help="Whether to return discounted rewards \
                                 during testing (default False, True \
