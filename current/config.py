@@ -21,8 +21,8 @@ def read_command(argv) -> Namespace:
                         -e {env_type}
                         -n {num_agent_env_pairs}
                         -i {num_training}
-                        -k {num_testing}
                         -j {training_interval}
+                        -k {num_testing}
                         -p {pomdp_type}
                         -f {param_files/hyperparameters_file}
                         -s (saves)
@@ -32,8 +32,8 @@ def read_command(argv) -> Namespace:
                         -e {env_type}
                         -n {num_agent_env_pairs}
                         -i {num_training}
-                        -k {num_testing}
                         -j {training_interval}
+                        -k {num_testing}
                         -p {pomdp_type}
                         -s (saves)
                         -q (quiet)
