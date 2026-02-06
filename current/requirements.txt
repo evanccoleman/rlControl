@@ -1,71 +1,68 @@
-Package                 Version
------------------------ -----------
-absl-py                 2.3.1
-ale-py                  0.11.2
-alembic                 1.18.1
-cloudpickle             3.1.2
-colorama                0.4.6
-colorlog                6.10.1
-contourpy               1.3.3
-cycler                  0.12.1
-etils                   1.13.0
-Farama-Notifications    0.0.4
-filelock                3.20.3
-fonttools               4.61.1
-fsspec                  2026.1.0
-glfw                    2.10.0
-gmpy2                   2.2.1
-greenlet                3.3.1
-grpcio                  1.76.0
-gymnasium               1.2.2
-ImageIO                 2.37.2
-importlib_metadata      8.7.0
-importlib_resources     6.5.2
-jax-jumpy               1.0.0
-Jinja2                  3.1.6
-kiwisolver              1.4.9
-Mako                    1.3.10
-Markdown                3.10.1
-markdown-it-py          4.0.0
-MarkupSafe              3.0.3
-matplotlib              3.10.8
-mdurl                   0.1.2
-mpmath                  1.3.0
-mujoco                  3.4.0
-munkres                 1.1.4
-networkx                3.6.1
-numpy                   2.4.1
-opencv-python           4.13.0.90
-optree                  0.18.0
-optuna                  4.7.0
-packaging               26.0
-pandas                  3.0.0
-pillow                  12.1.0
-pip                     25.3
-protobuf                6.33.4
-psutil                  7.2.1
-pybind11                3.0.1
-pybind11-global         3.0.1
-pygame                  2.6.1
-Pygments                2.19.2
-PyOpenGL                3.1.10
-pyparsing               3.3.2
-python-dateutil         2.9.0.post0
-PyYAML                  6.0.3
-rich                    14.3.1
-sb3_contrib             2.7.1
-setuptools              80.10.1
-six                     1.17.0
-SQLAlchemy              2.0.46
-stable_baselines3       2.7.1
-sympy                   1.14.0
-tensorboard             2.20.0
-tensorboard-data-server 0.7.2
-tomli                   2.4.0
-torch                   2.9.1
-tqdm                    4.67.1
-typing_extensions       4.15.0
-unicodedata2            17.0.0
-Werkzeug                3.1.5
-wheel                   0.46.3
-zipp                    3.23.0
+absl-py==2.3.1
+ale-py==0.11.2
+alembic @ file:///home/conda/feedstock_root/build_artifacts/bld/rattler-build_alembic_1768487688/work
+cloudpickle @ file:///home/conda/feedstock_root/build_artifacts/bld/rattler-build_cloudpickle_1765303462/work
+colorama @ file:///home/conda/feedstock_root/build_artifacts/colorama_1733218098505/work
+colorlog @ file:///home/conda/feedstock_root/build_artifacts/colorlog_1760645008230/work
+contourpy @ file:///Users/runner/miniforge3/conda-bld/bld/rattler-build_contourpy_1769156157/work
+cycler @ file:///home/conda/feedstock_root/build_artifacts/bld/rattler-build_cycler_1764466758/work
+etils==1.13.0
+Farama-Notifications @ file:///home/conda/feedstock_root/build_artifacts/farama-notifications_1684258120643/work
+filelock @ file:///home/conda/feedstock_root/build_artifacts/filelock_1768022204021/work
+fonttools @ file:///Users/runner/miniforge3/conda-bld/fonttools_1765632655841/work
+fsspec @ file:///home/conda/feedstock_root/build_artifacts/fsspec_1768000753514/work
+glfw==2.10.0
+gmpy2 @ file:///Users/runner/miniforge3/conda-bld/gmpy2_1762946867855/work
+greenlet @ file:///Users/runner/miniforge3/conda-bld/greenlet_1769257030868/work
+grpcio==1.76.0
+gymnasium @ file:///Users/runner/miniforge3/conda-bld/bld/rattler-build_gymnasium_1762297161/work
+ImageIO==2.37.2
+importlib_metadata @ file:///home/conda/feedstock_root/build_artifacts/bld/rattler-build_importlib-metadata_1747934053/work
+importlib_resources==6.5.2
+jax-jumpy @ file:///home/conda/feedstock_root/build_artifacts/jax-jumpy_1734209928065/work
+Jinja2 @ file:///home/conda/feedstock_root/build_artifacts/bld/rattler-build_jinja2_1764517220/work
+kiwisolver @ file:///Users/runner/miniforge3/conda-bld/bld/rattler-build_kiwisolver_1762488827/work
+Mako @ file:///home/conda/feedstock_root/build_artifacts/bld/rattler-build_mako_1764678340/work
+Markdown==3.10.1
+markdown-it-py==4.0.0
+MarkupSafe @ file:///Users/runner/miniforge3/conda-bld/markupsafe_1759055336813/work
+matplotlib==3.10.8
+mdurl==0.1.2
+mpmath @ file:///home/conda/feedstock_root/build_artifacts/mpmath_1733302684489/work
+mujoco==3.4.0
+munkres==1.1.4
+networkx @ file:///home/conda/feedstock_root/build_artifacts/bld/rattler-build_networkx_1765215107/work
+numpy @ file:///Users/runner/miniforge3/conda-bld/bld/rattler-build_numpy_1768085582/work/dist/numpy-2.4.1-cp312-cp312-macosx_11_0_arm64.whl#sha256=5c388df928142faa25d9b410c72bee9490991bada2fd855e79c1650f6a5c209a
+opencv-python==4.13.0.90
+optree @ file:///Users/runner/miniforge3/conda-bld/optree_1763124407596/work
+optuna @ file:///home/conda/feedstock_root/build_artifacts/optuna_1769135131366/work
+packaging @ file:///home/conda/feedstock_root/build_artifacts/bld/rattler-build_packaging_1769093650/work
+pandas @ file:///Users/runner/miniforge3/conda-bld/bld/rattler-build_pandas_1769076491/work
+pillow @ file:///Users/runner/miniforge3/conda-bld/bld/rattler-build_pillow_1767353279/work
+protobuf==6.33.4
+psutil==7.2.1
+pybind11 @ file:///D:/bld/bld/rattler-build_pybind11_1755953378/work
+pybind11-global @ file:///home/conda/feedstock_root/build_artifacts/bld/rattler-build_pybind11-global_1755953338/work
+pygame==2.6.1
+Pygments==2.19.2
+PyOpenGL==3.1.10
+pyparsing @ file:///home/conda/feedstock_root/build_artifacts/bld/rattler-build_pyparsing_1769003998/work
+python-dateutil @ file:///home/conda/feedstock_root/build_artifacts/bld/rattler-build_python-dateutil_1751104122/work
+PyYAML @ file:///Users/runner/miniforge3/conda-bld/pyyaml_1758891734748/work
+rich==14.3.1
+sb3_contrib @ file:///home/conda/feedstock_root/build_artifacts/sb3-contrib_1764954662120/work
+setuptools==80.10.1
+six @ file:///home/conda/feedstock_root/build_artifacts/bld/rattler-build_six_1753199211/work
+SQLAlchemy @ file:///Users/runner/miniforge3/conda-bld/bld/rattler-build_sqlalchemy_1769087087/work
+stable_baselines3 @ file:///home/conda/feedstock_root/build_artifacts/stable-baselines3_1766784674533/work
+sympy @ file:///home/conda/feedstock_root/build_artifacts/sympy_1745946051654/work
+tensorboard==2.20.0
+tensorboard-data-server==0.7.2
+tomli @ file:///home/conda/feedstock_root/build_artifacts/bld/rattler-build_tomli_1768146676/work
+torch @ file:///Users/runnerx/miniforge3/conda-bld/libtorch_1768330701566/work
+tqdm @ file:///home/conda/feedstock_root/build_artifacts/tqdm_1735661334605/work
+typing_extensions @ file:///home/conda/feedstock_root/build_artifacts/bld/rattler-build_typing_extensions_1756220668/work
+unicodedata2 @ file:///Users/runner/miniforge3/conda-bld/unicodedata2_1763054831692/work
+Werkzeug==3.1.5
+wheel==0.46.3
+zipp @ file:///home/conda/feedstock_root/build_artifacts/bld/rattler-build_zipp_1764460141/work
