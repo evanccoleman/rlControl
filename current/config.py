@@ -42,7 +42,7 @@ def read_command(argv) -> Namespace:
     # create the argument parser
     parser = argparse.ArgumentParser(usage=usage_str)
 
-    # options for creating/saving agent and the env
+    # options for creating agent and the env
     parser.add_argument("-a", "--agent_type",
                         type=str, default=None,
                         metavar="A", help="The type of new agent to create \
@@ -51,12 +51,6 @@ def read_command(argv) -> Namespace:
                         type=str, default=None,
                         metavar="L", help="Zip file to load agent from \
                                 (default None).")
-    parser.add_argument("-s", "--save_agent",
-                        action="store_true",
-                        help="Whether to save the agent (default False, \
-                                True when option is present). \
-                                Seed is not saved. \
-                                If True, a save name is auto-generated.")
     parser.add_argument("-e", "--env_type",
                         type=str, default=None,
                         help="Which environment to put agent in.")
@@ -96,7 +90,13 @@ def read_command(argv) -> Namespace:
                         action="store_true",
                         help="Whether to render env (default False, \
                                 True when option is present).")
-    parser.add_argument("-d", "--no_discount",
+    parser.add_argument("-s", "--save_agent",
+                        action="store_true",
+                        help="Whether to save the agent (default False, \
+                                True when option is present). \
+                                Seed is not saved. \
+                                If True, a save name is auto-generated.")
+   parser.add_argument("-d", "--no_discount",
                         action="store_true",
                         help="Whether to return discounted rewards \
                                 during testing (default False, True \
