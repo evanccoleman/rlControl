@@ -19,23 +19,24 @@ def read_command(argv) -> Namespace:
     EXAMPLES:   (1) python walkers_v5.py
                         -a {agent_type}
                         -e {env_type}
+                        -n {num_agent_env_pairs}
                         -i {num_training}
                         -k {num_testing}
+                        -j {training_interval}
                         -p {pomdp_type}
                         -f {param_files/hyperparameters_file}
                         -s (saves)
                         -q (quiet)
-                        -n (no discounting)
                 (2) python walkers_v5.py
                         -l {../saved_agents/filename}
                         -e {env_type}
+                        -n {num_agent_env_pairs}
                         -i {num_training}
                         -k {num_testing}
+                        -j {training_interval}
                         -p {pomdp_type}
-                        -f {param_files/hyperparameters_file}
                         -s (saves)
                         -q (quiet)
-                        -n (no discounting)
     """
 
     # create the argument parser
@@ -55,10 +56,7 @@ def read_command(argv) -> Namespace:
                         help="Whether to save the agent (default False, \
                                 True when option is present). \
                                 Seed is not saved. \
-                                If True, a save name is auto-generated \
-                                and the save directory is automatically \
-                                determined. Looks like \
-                                'agents_ant/ppo_ant_10000.zip'.")
+                                If True, a save name is auto-generated.")
     parser.add_argument("-e", "--env_type",
                         type=str, default=None,
                         help="Which environment to put agent in.")
@@ -80,20 +78,20 @@ def read_command(argv) -> Namespace:
     parser.add_argument("-n", "--num_agent_env_pairs",
                         type=int, default=2,
                         metavar="N", help="The number of agent/env \
-                                pairs to train and test (default 4). \
+                                pairs to train and test (default 2). \
                                 Seeds are randomly generated [0, 100).")
     parser.add_argument("-i", "--num_train",
                         type=int, default=5_000,
                         metavar="I", help="The number of steps to \
-                                train for before testing (default 0).")
+                                train for before testing (default 5_000).")
     parser.add_argument("-j", "--training_interval",
                         type=int, default=1_000,
                         metavar="J", help="The number of steps to \
-                                train for between testing (default 0).")
+                                train for between testing (default 1_000).")
     parser.add_argument("-k", "--num_test",
                         type=int, default=5,
                         metavar="K", help="The number of episodes to \
-                                test for (default 0).")
+                                test for (default 5).")
     parser.add_argument("-q", "--quiet",
                         action="store_true",
                         help="Whether to render env (default False, \
