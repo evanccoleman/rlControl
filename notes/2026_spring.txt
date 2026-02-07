@@ -13,6 +13,9 @@ What is implemented...
 - Gymnasium environments
 - POMDPWrapper class
 
+Note:
+- files from the cluster may have a 1-hour time difference
+
 ==================================
 
 GOAL:
