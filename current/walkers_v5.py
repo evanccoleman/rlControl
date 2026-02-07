@@ -44,7 +44,7 @@ def main() -> None:
 
     # create output filename
     current_datetime = dt.now().strftime("%Y-%m-%d_%H-%M-%S")
-    output_filename = f"{agent_type}_{env_type_short}_{current_datetime}"
+    output_filename = f"{agent_type}_{env_type_short}_{ispomdp}_{current_datetime}"
 
     # randomly generate seeds
     # first half for training, second half for testing
