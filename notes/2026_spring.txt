@@ -24,7 +24,7 @@ control environments?
 
 ==================================
 
-SUMMARY OF FIELS AND DIRECTORIES:
+SUMMARY OF FILES AND DIRECTORIES:
 
 old_agents/ --> agents trained on pc
 
@@ -44,7 +44,10 @@ old_stuff/tuned_agents_ant --> tuned and trained agents
 
 notes/ --> personal notes
 
-run/ --> for running stuff
-run/graphs --> stores graphs
-run/param_files --> stores hyperparameters to try for new agents
-run/outputs --> output from walkers_v5.py
+current/ --> for running stuff
+current/graphs --> stores graphs
+current/param_files --> stores hyperparameters to try for new agents
+current/outputs --> output from walkers_v5.py
+current/runs --> stores details about program runs
+current/checkpoints --> saves agents regularly and best agent 
+current/callbacks --> saves info (timesteps, results, ep_lengths) from EvalCallback

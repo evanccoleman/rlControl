@@ -3,8 +3,6 @@
 import argparse
 from argparse import Namespace
 
-MAX_STEPS_TO_TRAIN = 10_000
-
 def read_command(argv) -> Namespace:
     """
     Reads in command line options that set
@@ -23,6 +21,7 @@ def read_command(argv) -> Namespace:
                         -i {num_training}
                         -j {training_interval}
                         -k {num_testing}
+                        -m {max_steps}
                         -p {pomdp_type}
                         -f {param_files/hyperparameters_file}
                         -s (saves)
@@ -34,6 +33,7 @@ def read_command(argv) -> Namespace:
                         -i {num_training}
                         -j {training_interval}
                         -k {num_testing}
+                        -m {max_steps}
                         -p {pomdp_type}
                         -s (saves)
                         -q (quiet)
@@ -86,6 +86,13 @@ def read_command(argv) -> Namespace:
                         type=int, default=5,
                         metavar="K", help="The number of episodes to \
                                 test for (default 5).")
+    parser.add_argument("-m", "--max_steps",
+                        type=int, default=10_000,
+                        metavar="M", help="The max number of steps to \
+                                train for, then program ends (default \
+                                10_000")
+
+    # other program options
     parser.add_argument("-q", "--quiet",
                         action="store_true",
                         help="Whether to render env (default False, \

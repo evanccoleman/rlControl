@@ -1,0 +1,17 @@
+current_datetime : 2026-02-06_22-08-19
+seeds : array('i', [2, 75, 21, 50])
+train_seeds : array('i', [2, 75])
+test_seeds : array('i', [21, 50])
+agent_type : ppo
+load_agent : None
+env_type : Hopper-v5
+pomdp_type : None
+hyperparameters_file : None
+num_agent_env_pairs : 2
+num_train : 5000
+training_interval : 1000
+num_test : 10
+max_steps : 10000
+quiet : True
+no_discount : False
+save_agent : True

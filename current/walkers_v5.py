@@ -7,15 +7,19 @@ import numpy as np
 from datetime import datetime as dt
 import sys
 
-from stable_baselines3.common.callbacks import EvalCallback
+from stable_baselines3.common.callbacks import (
+    EvalCallback,
+    CheckpointCallback,
+    CallbackList,
+)
 from stable_baselines3.common.logger import configure
 from stable_baselines3.common.monitor import Monitor
 
-from config import read_command, MAX_STEPS_TO_TRAIN
+from config import read_command
 from agents import create_agent, save_agent
 from environments import create_env
 from episodes import run_many_episodes, set_seed
-from output import write_output
+from write_output import write_output
 
 def main() -> None:
     """
@@ -60,7 +64,6 @@ def main() -> None:
                "test_seeds" : test_seeds,
                "agent_type" : args.agent_type,
                "load_agent" : args.load_agent,
-               "save_agent" : args.save_agent,
                "env_type" : args.env_type,
                "pomdp_type" : args.pomdp_type,
                "hyperparameters_file" : args.hyperparameters_file,
@@ -68,12 +71,14 @@ def main() -> None:
                "num_train" : args.num_train,
                "training_interval" : args.training_interval,
                "num_test" : args.num_test,
+               "max_steps" : args.max_steps,
                "quiet" : args.quiet,
                "no_discount" : args.no_discount,
+               "save_agent" : args.save_agent,
                }
 
     # prepare array to hold averages of each agent
-    num_entries = (MAX_STEPS_TO_TRAIN - args.num_train) // \
+    num_entries = (args.max_steps - args.num_train) // \
             args.training_interval + 1
     all_agent_avgs = np.zeros([args.num_agent_env_pairs, num_entries],
                               dtype=float,
@@ -108,20 +113,40 @@ def main() -> None:
                               )
         eval_env = Monitor(eval_env)
         eval_env.reset(seed=seeds[i] + 100)
+
+        # set up paths for callbacks
         callback_path = (f"callbacks/{output_filename}/"
                          f"agent{i}_seed{seeds[i]}")
+        checkpoint_path = (f"checkpoints/{output_filename}/"
+                           f"agent{i}_seed{seeds[i]}")
+        best_model_path = (f"checkpoints/{output_filename}/"
+                           f"agent{i}_seed{seeds[i]}/best")
+
+        # checkpoint callback: saves model periodically
+        # save every 10 training intervals
+        checkpoint_callback = CheckpointCallback(
+            save_freq=args.training_interval * 10,
+            save_path=checkpoint_path,
+            name_prefix="model",
+            verbose=0
+        )
+
+        # eval callback: evaluates and saves best model
         eval_callback = EvalCallback(eval_env,
-                                     best_model_save_path=None,
+                                     best_model_save_path=best_model_path,
                                      log_path=callback_path,
                                      eval_freq=args.training_interval,
                                      n_eval_episodes=args.num_test,
                                      verbose=0
                                      )
 
+        # combine callbacks
+        callbacks = CallbackList([checkpoint_callback, eval_callback])
+
         # first round of training
         # already reset env after creation
         agent.learn(total_timesteps=args.num_train,
-                    callback=eval_callback)
+                    callback=callbacks)
         training_rng_state = env.np_random.bit_generator.state
 
         # first round of testing
@@ -144,7 +169,7 @@ def main() -> None:
             env.np_random.bit_generator.state = training_rng_state
             env.reset()
             agent.learn(total_timesteps=args.training_interval,
-                        callback=eval_callback)
+                        callback=callbacks)
             training_rng_state = env.np_random.bit_generator.state
 
             # round of testing
@@ -160,6 +185,15 @@ def main() -> None:
             j += 1
             testing_rng_state = env.np_random.bit_generator.state
 
+            # periodically save output (every 10 intervals, matching checkpoints)
+            if j % 10 == 0:
+                final_avgs = np.mean(all_agent_avgs, axis=0)
+                write_output(output_filename=output_filename,
+                             the_dict=details,
+                             oned_nparray=final_avgs,
+                             twod_nparray=all_agent_avgs,
+                             )
+
        # close envs
         eval_env.close()
         env.close()
@@ -174,10 +208,8 @@ def main() -> None:
                        num_train=args.num_train,
                        )
 
-    # calculate average of performance across randomly generated seeds
+    # last call to write to output file
     final_avgs = np.mean(all_agent_avgs, axis=0)
-
-    # write to output file
     write_output(output_filename=output_filename,
                  the_dict=details,
                  oned_nparray=final_avgs,
