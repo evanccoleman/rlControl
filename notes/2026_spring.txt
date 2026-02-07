@@ -29,28 +29,21 @@ control environments?
 
 SUMMARY OF FILES AND DIRECTORIES:
 
-old_agents/ --> agents trained on pc
-
-old_walkers/ 
-walkers_v1.py --> loads agent from cli 
-walkers_v2.py --> load agent from param_files/ 
-walkers_v3.py --> load LinghengMeng POMDPWrapper class
-walkers_v4.py --> run multiple randomly seeded envs
-
-old_stuff/ --> misc old stuff
-optimizer_v2.py --> finds best hyperparameters using Optuna
-getgraphs.py --> plots performance of a file of tuned agents from test_agents/
-custom_ddpg.py --> my attempt at writing a DDPG agent (compiles)
-
-old_stuff/test_agents --> list of tuned agents for getgraphs.py to evaluate
-old_stuff/tuned_agents_ant --> tuned and trained agents
+old/ --> old stuff from Aug 2025 
+        old agents,
+        old walker files,
+        old stuff (optuna optimizer, getgraphs.py, old dppg,
+                   agents to be tested, and tuned agents)
 
 notes/ --> personal notes
 
-current/ --> for running stuff
-current/graphs --> stores graphs
-current/param_files --> stores hyperparameters to try for new agents
-current/outputs --> output from walkers_v5.py
-current/runs --> stores details about program runs
-current/checkpoints --> saves agents regularly and best agent 
-current/callbacks --> saves info (timesteps, results, ep_lengths) from EvalCallback
+current/ --> code to work with and run right now 
+
+param_files/ --> stores hyperparameters to try to train new agents on
+
+outputs/ directory...
+graphs/ --> stores graphs
+runs/{agent}_{env}_{date}/ --> details and avgs an agent-env run
+callbacks/{agent}_{env}_{date}/agent{i}_seed{i} --> from EvalCallback
+checkpoints/{agent}_{env}_{date}/agent{i}_seed{i} --> best model and periodic model saves
+
