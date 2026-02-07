@@ -4,7 +4,7 @@ import sys
 import numpy as np
 
 """
-USAGE: python view_callback.py callbacks/{output_filename/ \
+USAGE: python view_callback.py ../outputs/callbacks/{output_filename}/ \
         agent{i}_seed{i}/evaluations.npz
 """
 

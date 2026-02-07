@@ -115,11 +115,11 @@ def main() -> None:
         eval_env.reset(seed=seeds[i] + 100)
 
         # set up paths for callbacks
-        callback_path = (f"callbacks/{output_filename}/"
+        callback_path = (f"../outputs/callbacks/{output_filename}/"
                          f"agent{i}_seed{seeds[i]}")
-        checkpoint_path = (f"checkpoints/{output_filename}/"
+        checkpoint_path = (f"../outputs/checkpoints/{output_filename}/"
                            f"agent{i}_seed{seeds[i]}")
-        best_model_path = (f"checkpoints/{output_filename}/"
+        best_model_path = (f"../outputs/checkpoints/{output_filename}/"
                            f"agent{i}_seed{seeds[i]}/best")
 
         # checkpoint callback: saves model periodically
