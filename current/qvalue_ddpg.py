@@ -21,6 +21,8 @@ class ReplayBuffer:
 
     def push(self, state, action, reward, next_state, done):
         """Store a transition in the buffer."""
+        # add a new slot if necessary
+        # only add new slots until we reach capacity
         if len(self.buffer) < self.capacity:
             self.buffer.append(None)
         self.buffer[self.position] = (state, action, reward, next_state, done)
