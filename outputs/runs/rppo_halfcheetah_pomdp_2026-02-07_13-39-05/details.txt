@@ -1,0 +1,17 @@
+current_datetime : 2026-02-07_13-39-05
+seeds : array('i', [18, 75, 46, 55, 93, 59, 32, 21, 12, 69])
+train_seeds : array('i', [18, 75, 46, 55, 93])
+test_seeds : array('i', [59, 32, 21, 12, 69])
+agent_type : rppo
+load_agent : None
+env_type : HalfCheetah-v5
+pomdp_type : remove_velocity
+hyperparameters_file : None
+num_agent_env_pairs : 5
+num_train : 50000
+training_interval : 10000
+num_test : 10
+max_steps : 1000000
+quiet : True
+no_discount : False
+save_agent : True
