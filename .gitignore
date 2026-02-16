@@ -3,3 +3,7 @@
 
 # ignore mac stuff 
 .DS_STORE
+
+# ignore outputs
+outputs/
+saved_agents/
