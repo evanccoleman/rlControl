@@ -37,7 +37,6 @@ def read_command(argv) -> Namespace:
                         -k {num_testing}
                         -m {max_steps}
                         -p {pomdp_type}
-                        -s (saves)
                         -q (quiet)
     """
 
@@ -99,7 +98,7 @@ def read_command(argv) -> Namespace:
                         action="store_true",
                         help="Whether to render env (default False, \
                                 True when option is present).")
-    parser.add_argument("-d", "--no_discount",
+    parser.add_argument("-d", "--discount",
                         action="store_true",
                         help="Whether to return discounted rewards \
                                 during testing (default False, True \

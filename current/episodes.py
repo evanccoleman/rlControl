@@ -27,7 +27,7 @@ def set_seed(seed):
 
 def run_episode(agent,
                 env: gym.Env,
-                no_discount: bool = False,
+                discount: bool = False,
                 ) -> int:
     """
     Executes a single episode for an agent without LSTM.
@@ -58,14 +58,14 @@ def run_episode(agent,
         total_discount *= agent.gamma
 
     # return episode returns
-    if no_discount:
-        return info["episode"]["r"]
-    else:
+    if discount:
         return episode_rewards
+    else:
+        return info["episode"]["r"]
 
 def run_episode_lstm(agent,
                      env: gym.Env,
-                     no_discount: bool = False,
+                     discount: bool = False,
                      ) -> int:
     """
     Executes a single episode for an agent with LSTM.
@@ -102,16 +102,16 @@ def run_episode_lstm(agent,
         total_discount *= agent.gamma
 
     # return episode returns
-    if no_discount:
-        return info["episode"]["r"]
-    else:
+    if discount:
         return episode_rewards
+    else:
+        return info["episode"]["r"]
 
 def run_many_episodes(agent,
                       env,
                       num_episodes: int = 0,
                       agent_type: str = None,
-                      no_discount: bool = False,
+                      discount: bool = False,
                       ) -> None:
     """
     Executes episodes in testing mode for an agent.
@@ -133,10 +133,10 @@ def run_many_episodes(agent,
         # decide whether to run LSTM episode
         if agent_type == "rppo":
             episode_rewards = run_episode_lstm(agent, env,
-                                             no_discount=no_discount)
+                                             discount=discount)
         else:
             episode_rewards = run_episode(agent, env,
-                                         no_discount=no_discount)
+                                         discount=discount)
 
         # add episode returns to running list
         rewards.append(episode_rewards)

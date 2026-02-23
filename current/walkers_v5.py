@@ -71,7 +71,7 @@ def main() -> None:
                "num_test" : args.num_test,
                "max_steps" : args.max_steps,
                "quiet" : args.quiet,
-               "no_discount" : args.no_discount,
+               "discount" : args.discount,
                }
 
     # prepare array to hold averages of each agent
@@ -146,7 +146,7 @@ def main() -> None:
                                         env,
                                         num_episodes=args.num_test,
                                         agent_type=agent_type,
-                                        no_discount=args.no_discount,
+                                        discount=args.discount,
                                         )
         j = 0
         all_agent_avgs[i][j] = ep_eval_avg
@@ -174,7 +174,7 @@ def main() -> None:
                                             env,
                                             num_episodes=args.num_test,
                                             agent_type=agent_type,
-                                            no_discount=args.no_discount,
+                                            discount=args.discount,
                                             )
             all_agent_avgs[i][j] = ep_eval_avg
             testing_rng_state = env.np_random.bit_generator.state
