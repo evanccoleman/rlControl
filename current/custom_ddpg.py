@@ -109,8 +109,7 @@ class CustomDDPG:
 
         Employ a MlpPolicy for actor and critic networks.
         """
-        # policy and env
-        self.policy = policy
+        # env
         self.env = env
 
         # replay buffer
@@ -167,9 +166,16 @@ class CustomDDPG:
 
     def _sample_batch():
         """
-        Sample a minibatch of experiences.
+        Sample a batch of experiences.
+
+        Raw batch is list of tuples (state, action, reward, next_state, done);
+        instead, return list of tensors [state tensor, action tensor, etc.]
         """
-        raw_minibatch = self.replay_buffer.sample(self.batch_size)
+        batch_as_tuples = self.replay_buffer.sample(self.batch_size)
+        grouped_tuples = zip(*batch_as_tuples)
+        batch_as_tensors = [torch.Tensor(the_tuple) for the_tuple
+                            in grouped_tuples]
+        return batch_as_tensors
 
 
     def _update_actor():
