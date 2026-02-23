@@ -94,17 +94,18 @@ class CustomDDPG:
 
     def __init__(self,
                  env=None,
-                 action_noise=None,
+                 action_noise=0.1,
                  seed: int = None,
                  buffer_size: int = 1_000_000,
                  batch_size: int = 256,
-                 actor_lr: float = 0.003,
-                 critic_lr: float = 0.003,
+                 learning_rate: float = 0.001,
                  gamma: float = 0.99,
                  tau: float = 0.005,
                  ):
         """
         Create a CustomDDPG agent.
+
+        Learning rate is same for all actor and critic networks.
 
         Employ a MlpPolicy for actor and critic networks.
         """
@@ -118,7 +119,7 @@ class CustomDDPG:
 
         # other settings
         self.action_noise = action_noise
-        self.learning_rate = actor_lr
+        self.learning_rate = learning_rate 
         self.gamma = gamma
         self.tau = tau
         self.seed = seed
@@ -133,14 +134,14 @@ class CustomDDPG:
         self.actor_target = Actor(obs_dim, action_dim, action_high)
         self.actor_target.load_state_dict(self.actor.state_dict())
         self.actor_optimizer = torch.optim.Adam(self.actor.parameters(),
-                                                lr=actor_lr)
+                                                lr=learning_rate)
 
         # critic and target critic
         self.critic = Critic(obs_dim, action_dim)
         self.critic_target = Critic(obs_dim, action_dim)
         self.critic_target.load_state_dict(self.critic.state_dict())
         self.critic_optimizer = torch.optim.Adam(self.critic.parameters(),
-                                                 lr=critic_lr)
+                                                 lr=learning_rate)
     
     def learn(total_timesteps: int = 0, callback = None):
         """

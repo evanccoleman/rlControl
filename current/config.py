@@ -7,11 +7,14 @@ def read_command(argv) -> Namespace:
     """
     Reads in command line options that set
     the environment and the agent.
+
+    Note to self: program defaults for testing are...
+    -n 4 -i 1000 -j 10000 -k 10 -m 1000000
     """
 
     # instructions for how to run walkers_v5.py found using -h
     usage_str = """
-    USAGE:      python walkers_v5.py <options>
+    USAGE:      python walkers_v5.py -a ppo -e Hopper-v5 <options>
     NOTE:       POMDP envs should only have POMDP agents.
                 Basically, you can either use -a or -l, not both.
     EXAMPLES:   (1) python walkers_v5.py
@@ -23,7 +26,7 @@ def read_command(argv) -> Namespace:
                         -k {num_testing}
                         -m {max_steps}
                         -p {pomdp_type}
-                        -f {param_files/hyperparameters_file}
+                        -f {../param_files/hyperparameters_file}
                         -s (saves)
                         -q (quiet)
                 (2) python walkers_v5.py
@@ -124,25 +127,18 @@ def read_params_file(params_file: str = None) -> dict:
         # loop through each line of the file
         for line in inFile:
 
-            # skip over info before the first two delimiters "*****"
-            if count_delimiters != 2:
-                if line.strip() == "*****":
-                    count_delimiters += 1
+            line = line.strip()
+            param = line.split(" : ")
 
-            # start reading parameters
+            # type cast numbers
+            if "auto" in param[1]:
+                # is specifically an sac agent param
+                # it stays a string
+                pass
+            elif "." in param[1]:
+                param[1] = float(param[1])
             else:
-                line = line.strip()
-                param = line.split(" : ")
-
-                # type cast numbers
-                if "auto" in param[1]:
-                    # is specifically an sac agent param
-                    # it stays a string
-                    pass
-                elif "." in param[1]:
-                    param[1] = float(param[1])
-                else:
-                    param[1] = int(param[1])
-                param_settings.update({param[0]: param[1]})
+                param[1] = int(param[1])
+            param_settings.update({param[0]: param[1]})
 
     return param_settings

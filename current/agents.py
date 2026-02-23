@@ -76,9 +76,11 @@ def create_agent(agent_type: str = None,
 
         elif agent_type == "ddpg":
             # noise objects for DDPG
+            std = param_settings["action_noise"]
+            del param_settings["action_noise"]
             n_actions = env.action_space.shape[-1]
             action_noise = NormalActionNoise(mean=np.zeros(n_actions),
-                                             sigma=0.1*np.ones(n_actions),
+                                             sigma=std*np.ones(n_actions),
                                              )
             agent = DDPG("MlpPolicy",
                          env,
@@ -89,9 +91,11 @@ def create_agent(agent_type: str = None,
 
         elif agent_type == "td3":
             # noise objects for DDPG
+            std = param_settings["action_noise"]
+            del param_settings["action_noise"]
             n_actions = env.action_space.shape[-1]
             action_noise = NormalActionNoise(mean=np.zeros(n_actions),
-                                             sigma=0.1*np.ones(n_actions),
+                                             sigma=std*np.ones(n_actions),
                                              )
             agent = TD3("MlpPolicy",
                         env,
@@ -139,7 +143,9 @@ def save_agent(agent=None,
     Saves a new agent or a loaded agent.
 
     The agent is saved under a name like:
-    'saved_agents/ppo_ant_mdp_10000_2026-01-31_14-30-22.zip'
+    '../outputs/saved_agents/ppo_ant_mdp_10000_2026-01-31_14-30-22.zip'
+
+    This function is no longer used. Stablebaselines3 save() used instead.
     """
 
     current_datetime = dt.now().strftime("%Y-%m-%d_%H-%M-%S")
@@ -150,7 +156,7 @@ def save_agent(agent=None,
         old_num_train = int(load.split("/")[-1].split("_")[3])
         num_train = num_train + old_num_train
 
-    save_name = r"../saved_agents/" + \
+    save_name = r"../outputs/saved_agents/" + \
             agent_type + \
             "_" + env_type_short + \
             "_" + ispomdp + \

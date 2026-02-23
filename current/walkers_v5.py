@@ -8,11 +8,7 @@ from datetime import datetime as dt
 import sys
 from tqdm import tqdm
 
-from stable_baselines3.common.callbacks import (
-    EvalCallback,
-    CheckpointCallback,
-    CallbackList,
-)
+from stable_baselines3.common.callbacks import EvalCallback
 from stable_baselines3.common.logger import configure
 from stable_baselines3.common.monitor import Monitor
 
@@ -106,6 +102,8 @@ def main() -> None:
         agent.set_logger(configure(None, []))
 
         # create eval environment and callback for logging
+        # EvalCallback -> evaluates agent in separate test env and saves best one
+
         # seed the eval_env with a seed outside the [0, 100)
         # train/test seed rgn
         eval_env = create_env(env_type=args.env_type,
@@ -116,38 +114,29 @@ def main() -> None:
         eval_env.reset(seed=seeds[i] + 100)
 
         # set up paths for callbacks
-        callback_path = (f"../outputs/callbacks/{output_filename}/"
-                         f"agent{i}_seed{seeds[i]}")
-        checkpoint_path = (f"../outputs/checkpoints/{output_filename}/"
+        saved_agents_path = (f"../outputs/saved_agents/"
+                           f"{output_filename}/"
                            f"agent{i}_seed{seeds[i]}")
-        best_model_path = (f"../outputs/checkpoints/{output_filename}/"
+        evalcallback_path = (f"../outputs/eval_callbacks/"
+                             f"{output_filename}/"
+                             f"agent{i}_seed{seeds[i]}")
+        best_model_path = (f"../outputs/eval_callbacks/"
+                           f"{output_filename}/"
                            f"agent{i}_seed{seeds[i]}/best")
-
-        # checkpoint callback: saves model periodically
-        # save every 10 training intervals
-        checkpoint_callback = CheckpointCallback(
-            save_freq=args.training_interval * 10,
-            save_path=checkpoint_path,
-            name_prefix="model",
-            verbose=0
-        )
 
         # eval callback: evaluates and saves best model
         eval_callback = EvalCallback(eval_env,
                                      best_model_save_path=best_model_path,
-                                     log_path=callback_path,
+                                     log_path=evalcallback_path,
                                      eval_freq=args.training_interval,
                                      n_eval_episodes=args.num_test,
                                      verbose=0
                                      )
 
-        # combine callbacks
-        callbacks = CallbackList([checkpoint_callback, eval_callback])
-
         # first round of training
         # already reset env after creation
         agent.learn(total_timesteps=args.num_train,
-                    callback=callbacks)
+                    callback=eval_callback)
         training_rng_state = env.np_random.bit_generator.state
 
         # first round of testing
@@ -171,8 +160,11 @@ def main() -> None:
             # round of training
             env.np_random.bit_generator.state = training_rng_state
             env.reset()
+            # set reset_num_timesteps to False so that gradients update
             agent.learn(total_timesteps=args.training_interval,
-                        callback=callbacks)
+                        callback=eval_callback,
+                        reset_num_timesteps=False,
+                        )
             training_rng_state = env.np_random.bit_generator.state
 
             # round of testing
@@ -187,7 +179,7 @@ def main() -> None:
             all_agent_avgs[i][j] = ep_eval_avg
             testing_rng_state = env.np_random.bit_generator.state
 
-            # periodically save output (every 10 intervals, matching checkpoints)
+            # periodically save rewards and agent (every 10 training intervals)
             if (j + 1) % 10 == 0:
                 final_avgs = np.mean(all_agent_avgs, axis=0)
                 write_output(output_filename=output_filename,
@@ -195,8 +187,9 @@ def main() -> None:
                              oned_nparray=final_avgs,
                              twod_nparray=all_agent_avgs,
                              )
+                agent.save(saved_agents_path)
 
-       # close envs
+        # close envs
         eval_env.close()
         env.close()
 
