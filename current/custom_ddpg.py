@@ -141,12 +141,12 @@ class CustomDDPG:
         self.critic_target.load_state_dict(self.critic.state_dict())
         self.critic_optimizer = torch.optim.Adam(self.critic.parameters(),
                                                  lr=critic_lr)
-
-    def store_transition(self, state, action, reward, next_state, done):
+    
+    def learn(total_timesteps: int = 0, callback = None):
         """
-        Store a transition in the replay buffer.
+        Train agent.
         """
-        self.replay_buffer.push(state, action, reward, next_state, done)
+        k = 1
 
     def predict(self, state):
         """
@@ -157,12 +157,55 @@ class CustomDDPG:
         if self.action_noise is not None:
             action = action + torch.FloatTensor(self.action_noise())
         return action.detach().numpy()
+    
+    def _store_transition(self, state, action, reward, next_state, done):
+        """
+        Store a transition in the replay buffer.
+        """
+        self.replay_buffer.push(state, action, reward, next_state, done)
 
-    def learn(total_timesteps: int = 0, callback = None):
+    def _sample_batch():
         """
-        Train agent.
+        Sample a minibatch of experiences.
         """
-        # comment
+        raw_minibatch = self.replay_buffer.sample(self.batch_size)
+
+
+    def _update_actor():
+        """
+        Update the actor network.
+        """
+        k = 1
+
+    def _update_critic():
+        """
+        Update the critic network.
+        """
+        k = 1
+
+    def _soft_update_target(self, network_type):
+        """
+        Soft a target network using Polyak averaging.
+
+        Loop through network parameters in pair-wise fashion.
+        
+        Use torch.no_grad() to prevent parameter manipulation from
+        impacting later gradient calculations.
+        """
+        # select which network pair to update
+        if network_type == "actor":
+            online_params = self.actor.parameters()
+            target_params = self.actor_target.parameters()
+        elif network_type == "critic":
+            online_params = self.critic.parameters()
+            target_params = self.critic_target.parameters()
+
+        # loop through parameters to update weights and biases
+        with torch.no_grad():
+            for online_p, target_p in zip(online_params, target_params):
+                new_target_weight = self.tau * online_p.data + \
+                                    (1 - self.tau) * target_p.data
+                target_p.data.copy_(new_target_weight)
 
     def set_logger(self, logger = None):
         """
@@ -170,3 +213,5 @@ class CustomDDPG:
         """
         self._logger = logger
         # might need to import logger.py from stable_baselines3
+
+
