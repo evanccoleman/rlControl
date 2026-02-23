@@ -115,8 +115,13 @@ def create_agent(agent_type: str = None,
                                  )
 
         elif agent_type == "custom_ddpg":
-            agent = CustomDDPG("MlpPolicy",
-                               env,
+            # noise objects for DDPG
+            n_actions = env.action_space.shape[-1]
+            action_noise = NormalActionNoise(mean=np.zeros(n_actions),
+                                             sigma=0.1*np.ones(n_actions),
+                                             )
+            agent = CustomDDPG(env,
+                               action_noise=action_noise,
                                seed=seed,
                                **param_settings,
                                )
