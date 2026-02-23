@@ -75,9 +75,9 @@ def read_command(argv) -> Namespace:
                                 pairs to train and test (default 2). \
                                 Seeds are randomly generated [0, 100).")
     parser.add_argument("-i", "--num_train",
-                        type=int, default=5_000,
+                        type=int, default=1_000,
                         metavar="I", help="The number of steps to \
-                                train for before testing (default 5_000).")
+                                train for before testing (default 1_000).")
     parser.add_argument("-j", "--training_interval",
                         type=int, default=1_000,
                         metavar="J", help="The number of steps to \
@@ -87,10 +87,10 @@ def read_command(argv) -> Namespace:
                         metavar="K", help="The number of episodes to \
                                 test for (default 5).")
     parser.add_argument("-m", "--max_steps",
-                        type=int, default=10_000,
+                        type=int, default=5_000,
                         metavar="M", help="The max number of steps to \
                                 train for, then program ends (default \
-                                10_000")
+                                5_000")
 
     # other program options
     parser.add_argument("-q", "--quiet",

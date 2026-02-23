@@ -6,6 +6,7 @@ import array
 import numpy as np
 from datetime import datetime as dt
 import sys
+from tqdm import tqdm
 
 from stable_baselines3.common.callbacks import (
     EvalCallback,
@@ -163,7 +164,9 @@ def main() -> None:
         testing_rng_state = env.np_random.bit_generator.state
 
         # continue to alternate between training and testing
-        while j < len(all_agent_avgs[i]):
+        for j in tqdm(range(1, len(all_agent_avgs[i])),
+                      desc=f"Agent {i+1}/{len(seeds)//2}",
+                      unit="interval"):
 
             # round of training
             env.np_random.bit_generator.state = training_rng_state
@@ -182,11 +185,10 @@ def main() -> None:
                                             no_discount=args.no_discount,
                                             )
             all_agent_avgs[i][j] = ep_eval_avg
-            j += 1
             testing_rng_state = env.np_random.bit_generator.state
 
             # periodically save output (every 10 intervals, matching checkpoints)
-            if j % 10 == 0:
+            if (j + 1) % 10 == 0:
                 final_avgs = np.mean(all_agent_avgs, axis=0)
                 write_output(output_filename=output_filename,
                              the_dict=details,

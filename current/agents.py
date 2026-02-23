@@ -3,6 +3,8 @@
 import numpy as np
 from datetime import datetime as dt
 
+from custom_ddpg import CustomDDPG
+
 from stable_baselines3 import PPO, DDPG, SAC, TD3
 from stable_baselines3.common.noise import NormalActionNoise
 from sb3_contrib import RecurrentPPO
@@ -111,6 +113,13 @@ def create_agent(agent_type: str = None,
                                  seed=seed,
                                  **param_settings,
                                  )
+
+        elif agent_type == "custom_ddpg":
+            agent = CustomDDPG("MlpPolicy",
+                               env,
+                               seed=seed,
+                               **param_settings,
+                               )
 
     return agent
 
