@@ -27,7 +27,6 @@ def read_command(argv) -> Namespace:
                         -m {max_steps}
                         -p {pomdp_type}
                         -f {../param_files/hyperparameters_file}
-                        -s (saves)
                         -q (quiet)
                 (2) python walkers_v5.py
                         -l {../saved_agents/filename}
@@ -100,12 +99,6 @@ def read_command(argv) -> Namespace:
                         action="store_true",
                         help="Whether to render env (default False, \
                                 True when option is present).")
-    parser.add_argument("-s", "--save_agent",
-                        action="store_true",
-                        help="Whether to save the agent (default False, \
-                                True when option is present). \
-                                Seed is not saved. \
-                                If True, a save name is auto-generated.")
     parser.add_argument("-d", "--no_discount",
                         action="store_true",
                         help="Whether to return discounted rewards \

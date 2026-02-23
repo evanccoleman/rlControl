@@ -7,6 +7,7 @@ import numpy as np
 from datetime import datetime as dt
 import sys
 from tqdm import tqdm
+import os
 
 from stable_baselines3.common.callbacks import EvalCallback
 from stable_baselines3.common.logger import configure
@@ -71,7 +72,6 @@ def main() -> None:
                "max_steps" : args.max_steps,
                "quiet" : args.quiet,
                "no_discount" : args.no_discount,
-               "save_agent" : args.save_agent,
                }
 
     # prepare array to hold averages of each agent
@@ -117,6 +117,7 @@ def main() -> None:
         saved_agents_path = (f"../outputs/saved_agents/"
                            f"{output_filename}/"
                            f"agent{i}_seed{seeds[i]}/")
+        os.makedirs(saved_agents_path, exist_ok=True)
         evalcallback_path = (f"../outputs/eval_callbacks/"
                              f"{output_filename}/"
                              f"agent{i}_seed{seeds[i]}")
@@ -149,7 +150,6 @@ def main() -> None:
                                         )
         j = 0
         all_agent_avgs[i][j] = ep_eval_avg
-        j += 1
         testing_rng_state = env.np_random.bit_generator.state
 
         # continue to alternate between training and testing
@@ -180,15 +180,15 @@ def main() -> None:
             testing_rng_state = env.np_random.bit_generator.state
 
             # periodically save rewards and agent (every 10 training intervals)
-            # overwrites filename until successfully reached last iteration
             if (j + 1) % 10 == 0:
                 final_avgs = np.mean(all_agent_avgs, axis=0)
+                # overwrite old rewards because they do not matter
                 write_output(output_filename=output_filename,
                              the_dict=details,
                              oned_nparray=final_avgs,
                              twod_nparray=all_agent_avgs,
                              )
-                agent.save(f"{saved_agents_path}/ver_{j}")
+                agent.save(f"{saved_agents_path}/ver_{j + 1}")
 
         # close envs
         eval_env.close()
