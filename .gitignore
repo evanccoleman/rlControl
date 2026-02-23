@@ -7,3 +7,6 @@
 # ignore outputs
 outputs/
 saved_agents/
+
+# ignore cache
+__pycache__/
