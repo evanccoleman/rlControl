@@ -116,7 +116,7 @@ def main() -> None:
         # set up paths for callbacks
         saved_agents_path = (f"../outputs/saved_agents/"
                            f"{output_filename}/"
-                           f"agent{i}_seed{seeds[i]}")
+                           f"agent{i}_seed{seeds[i]}/")
         evalcallback_path = (f"../outputs/eval_callbacks/"
                              f"{output_filename}/"
                              f"agent{i}_seed{seeds[i]}")
@@ -180,6 +180,7 @@ def main() -> None:
             testing_rng_state = env.np_random.bit_generator.state
 
             # periodically save rewards and agent (every 10 training intervals)
+            # overwrites filename until successfully reached last iteration
             if (j + 1) % 10 == 0:
                 final_avgs = np.mean(all_agent_avgs, axis=0)
                 write_output(output_filename=output_filename,
@@ -187,21 +188,11 @@ def main() -> None:
                              oned_nparray=final_avgs,
                              twod_nparray=all_agent_avgs,
                              )
-                agent.save(saved_agents_path)
+                agent.save(f"{saved_agents_path}/ver_{j}")
 
         # close envs
         eval_env.close()
         env.close()
-
-        # save agents if applicable
-        if args.save_agent:
-            save_agent(agent=agent,
-                       env_type_short=env_type_short,
-                       load=args.load_agent,
-                       agent_type=agent_type,
-                       ispomdp=ispomdp,
-                       num_train=args.num_train,
-                       )
 
     # last call to write to output file
     final_avgs = np.mean(all_agent_avgs, axis=0)
