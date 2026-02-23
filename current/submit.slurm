@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # #NECESSARY JOB SPECIFICATIONS  
-#SBATCH --job-name=rppo_halfcheetah
-#SBATCH --time=2-12:00:00 
+#SBATCH --job-name=ddpg_mdp
+#SBATCH --time=3-00:00:00 
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=96
 #SBATCH --output=/dev/null
@@ -10,8 +10,18 @@
 # #SBATCH --gres=gpu:h100:1 
 
 # redirect standard output to ../outputs/jobs/{FILENAME}
-LOGFILE="../outputs/jobs/rppo_halfcheetah_$(date +%Y-%m-%d_%H-%M-%S)_${SLURM_JOB_ID}.out"
+LOGFILE="../outputs/jobs/ddpg_mdp_$(date +%Y-%m-%d_%H-%M-%S)_${SLURM_JOB_ID}.out"
 exec > "$LOGFILE" 2>&1
 
 # run the Python script(s)
-python walkers_v5.py -a rppo -e HalfCheetah-v5 -n 5 -i 50000 -j 10000 -k 10 -m 1000000 -p remove_velocity -sq
+python walkers_v5.py -a ddpg -e HalfCheetah-v5 -n 4 -i 1000 -j 1000 -k 10 -m 1000000 -f ../param_files/ddpg_params.txt -sq
+# python walkers_v5.py -a ddpg -e HalfCheetah-v5 -n 4 -i 1000 -j 1000 -k 10 -m 1000000 -f ../param_files/ddpg_params.txt -p remove_velocity -sq
+
+# python walkers_v5.py -a ppo -e HalfCheetah-v5 -n 4 -i 1000 -j 1000 -k 10 -m 1000000 -f ../param_files/ppo_params.txt -sq
+# python walkers_v5.py -a ppo -e HalfCheetah-v5 -n 4 -i 1000 -j 1000 -k 10 -m 1000000 -f ../param_files/ppo_params.txt -p remove_velocity -sq
+
+# python walkers_v5.py -a td3 -e HalfCheetah-v5 -n 4 -i 1000 -j 1000 -k 10 -m 1000000 -f ../param_files/td3_params.txt -sq
+# python walkers_v5.py -a td3 -e HalfCheetah-v5 -n 4 -i 1000 -j 1000 -k 10 -m 1000000 -f ../param_files/td3_params.txt -p remove_velocity -sq
+
+# python walkers_v5.py -a sac -e HalfCheetah-v5 -n 4 -i 1000 -j 1000 -k 10 -m 1000000 -f ../param_files/sac_params.txt -sq
+# python walkers_v5.py -a sac -e HalfCheetah-v5 -n 4 -i 1000 -j 1000 -k 10 -m 1000000 -f ../param_files/sac_params.txt -p remove_velocity -sq
