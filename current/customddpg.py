@@ -318,6 +318,7 @@ class CustomDDPG:
         """
         Save the CustomDDPG agent to a zip file.
         """
+        print(self.action_noise)
         torch.save({"actor": self.actor.state_dict(),
                     "actor_target": self.actor_target.state_dict(),
                     "critic": self.critic.state_dict(),
@@ -346,11 +347,11 @@ class CustomDDPG:
         This does not work.
         """
         # get hyperparameters from zip file
-        hyperparameters_dict = torch.load(save_path)
+        hyperparameters_dict = torch.load(save_path, weights_only=True)
 
         # create agent
         agent = cls(env=env,
-                    action_noise=action_noise,
+                    action_noise=hyperparameters_dict["action_noise"],
                     seed=seed,
                     buffer_size=hyperparameters_dict["buffer_size"],
                     batch_size=hyperparameters_dict["batch_size"],
