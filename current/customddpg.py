@@ -1,11 +1,10 @@
-# custom_ddpg.py
+# customddpg.py
 
 import numpy as np
 from collections import defaultdict
 import random
 import torch
 import torch.nn as nn
-
 
 class ReplayBuffer:
     """
@@ -123,7 +122,7 @@ class CustomDDPG:
         self.batch_size = batch_size
 
         # other settings
-        self.action_noise = action_noise
+        self.action_noise = action_noise # just sigma
         self.learning_rate = learning_rate 
         self.gamma = gamma
         self.tau = tau
@@ -343,13 +342,15 @@ class CustomDDPG:
              seed=0):
         """
         Load an old CustomDDPG agent from a zip file.
+
+        This does not work.
         """
         # get hyperparameters from zip file
         hyperparameters_dict = torch.load(save_path)
 
         # create agent
         agent = cls(env=env,
-                    action_noise=hyperparameters_dict["action_noise"],
+                    action_noise=action_noise,
                     seed=seed,
                     buffer_size=hyperparameters_dict["buffer_size"],
                     batch_size=hyperparameters_dict["batch_size"],

@@ -27,10 +27,10 @@ def main() -> None:
     # read in the options from the command line
     args = read_command(sys.argv[1:])
 
-    # filename format: {agent_type}_{env_type}_{ispomdp}_{steps}_{datetime}.zip
+    # filename format: {agent_type}_{env_type}_{ispomdp}_{datetime}/...
     # parse: agent_type, env_type, env_type_short, and ispomdp
     if args.load_agent:
-        filename = args.load_agent.split("/")[-1]
+        filename = args.load_agent.split("/")[-3]
         parts = filename.split("_")
         agent_type = parts[0]
         env_type_short = parts[1]
@@ -136,7 +136,7 @@ def main() -> None:
 
         # first round of training
         # already reset env after creation
-        if agent_type == "custom_ddpg":
+        if agent_type == "customddpg":
             agent.learn(total_timesteps=args.num_train)
         else:
             agent.learn(total_timesteps=args.num_train,
@@ -164,7 +164,7 @@ def main() -> None:
             env.np_random.bit_generator.state = training_rng_state
             env.reset()
             # set reset_num_timesteps to False so that gradients update
-            if agent_type == "custom_ddpg":
+            if agent_type == "customddpg":
                 agent.learn(total_timesteps=args.training_interval)
             else:
                 agent.learn(total_timesteps=args.training_interval,
