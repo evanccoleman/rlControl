@@ -10,3 +10,6 @@ saved_agents/
 
 # ignore cache
 __pycache__/
+
+# ignore *.slurm
+*.slurm
