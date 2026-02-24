@@ -33,8 +33,8 @@ config_path = os.path.join(base_dir,
                            os.pardir,
                            'graph_instructions',
                            args.instructions)
-with open(config_path) as f:
-    config = json.load(f)
+with open(config_path) as inFile:
+    config = json.load(inFile)
 
 # get runs directories to graph
 runs_dir = os.path.join(base_dir, os.pardir, 'outputs', 'runs')

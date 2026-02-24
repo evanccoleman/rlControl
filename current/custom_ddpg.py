@@ -178,11 +178,12 @@ class CustomDDPG:
         return batch_as_tensors
 
 
-    def _update_actor():
+    def _update_actor(self, state):
         """
         Update the actor network.
         """
-        k = 1
+        next_state_actions = self.actor(state)
+        target_qvavlues = self.critic_target
 
     def _update_critic():
         """

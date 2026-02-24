@@ -2,6 +2,7 @@
 
 import argparse
 from argparse import Namespace
+import json
 
 def read_command(argv) -> Namespace:
     """
@@ -26,7 +27,7 @@ def read_command(argv) -> Namespace:
                         -k {num_testing}
                         -m {max_steps}
                         -p {pomdp_type}
-                        -f {../param_files/hyperparameters_file}
+                        -f {../param_files/hyperparameters_file.json}
                         -q (quiet)
                 (2) python walkers_v5.py
                         -l {../saved_agents/filename}
@@ -112,25 +113,7 @@ def read_params_file(params_file: str = None) -> dict:
     Parses hyperparameters settings form a file.
     """
 
-    param_settings = {}
-    count_delimiters = 0
-    with open(params_file, mode="r", encoding="utf-8") as inFile:
-
-        # loop through each line of the file
-        for line in inFile:
-
-            line = line.strip()
-            param = line.split(" : ")
-
-            # type cast numbers
-            if "auto" in param[1]:
-                # is specifically an sac agent param
-                # it stays a string
-                pass
-            elif "." in param[1]:
-                param[1] = float(param[1])
-            else:
-                param[1] = int(param[1])
-            param_settings.update({param[0]: param[1]})
+    with open(params_file) as inFile:
+        param_settings = json.load(inFile)
 
     return param_settings
