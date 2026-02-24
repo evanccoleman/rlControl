@@ -12,8 +12,8 @@ class ReplayBuffer:
     Experience replay buffer for storing transitions.
     """
 
-    def __init__(self, capacity=10000):
-        self.capacity = capacity
+    def __init__(self, buffer_size=10000):
+        self.buffer_size = buffer_size
         self.buffer = []
         self.position = 0
 
@@ -21,10 +21,10 @@ class ReplayBuffer:
         """
         Store a transition in the buffer.
         """
-        if len(self.buffer) < self.capacity: # allocate memory
+        if len(self.buffer) < self.buffer_size: # allocate memory
             self.buffer.append(None)
         self.buffer[self.position] = (state, action, reward, next_state, done)
-        self.position = (self.position + 1) % self.capacity
+        self.position = (self.position + 1) % self.buffer_size
 
     def sample(self, batch_size):
         """
@@ -108,6 +108,10 @@ class CustomDDPG:
         Learning rate is same for all actor and critic networks.
 
         Employ a MlpPolicy for actor and critic networks.
+
+        This agent is specifically designed to be compatible with
+        the walkers_v5.py program and functional against 
+        Stablebaselines3 agents.
         """
         # env
         self.env = env
@@ -142,21 +146,66 @@ class CustomDDPG:
         self.critic_optimizer = torch.optim.Adam(self.critic.parameters(),
                                                  lr=learning_rate)
     
-    def learn(total_timesteps: int = 0, callback = None):
+    def learn(self,
+              total_timesteps: int = 0,
+              reset_num_timesteps=False,
+              callback = None,
+              ):
         """
         Train agent.
         """
-        k = 1
 
-    def predict(self, state):
+        # train for total_timesteps
+        i = 1 # start step
+        while i < total_timesteps + 1:
+            obs, info = self.env.reset() # reset env
+            is_episode_over = False # loop control variable
+
+            # one full episode
+            while (i < total_timesteps + 1) and (not is_episode_over):
+
+                # agent chooses action
+                action, _ = self.predict(obs, deterministic=False)
+
+                # environment applies action
+                next_obs, reward, terminated, trunc, info = self.env.step(action)
+                i = i + 1
+
+                # store transition
+                self._store_transition(obs, action, reward, next_obs, terminated)
+
+                # sample minibatch and learn from past experiences
+                if len(self.replay_buffer.buffer) >= self.batch_size:
+
+                    # sampel minibatch
+                    batch_of_tensors = self._sample_batch()
+
+                    # update online networks
+                    self._update_critic(batch_of_tensors[0], # states
+                                        batch_of_tensors[1], # actions
+                                        batch_of_tensors[2], # rewards
+                                        batch_of_tensors[3], # next_states
+                                        batch_of_tensors[4], # dones
+                                        )
+                    self._update_actor(batch_of_tensors[0])
+
+                    # update target networks
+                    self._soft_update_target("actor")
+                    self._soft_update_target("critic")
+
+                # move to the next state
+                obs = next_obs
+                is_episode_over = terminated or trunc
+
+    def predict(self, state, deterministic=False):
         """
         Select an action using the current policy.
         """
         state_tensor = torch.FloatTensor(state)
         action = self.actor(state_tensor)
-        if self.action_noise is not None:
+        if not deterministic:
             action = action + torch.FloatTensor(self.action_noise())
-        return action.detach().numpy()
+        return action.detach().numpy(), None
     
     def _store_transition(self, state, action, reward, next_state, done):
         """
@@ -164,7 +213,7 @@ class CustomDDPG:
         """
         self.replay_buffer.push(state, action, reward, next_state, done)
 
-    def _sample_batch():
+    def _sample_batch(self):
         """
         Sample a batch of experiences.
 
@@ -182,14 +231,42 @@ class CustomDDPG:
         """
         Update the actor network.
         """
-        next_state_actions = self.actor(state)
-        target_qvavlues = self.critic_target
+        # get the action and qvalue
+        action = self.actor(state)
+        qvalue = self.critic(state, action)
 
-    def _update_critic():
+        # compute loss
+        loss = -qvalue.mean()
+        
+        # remove gradient from previous updates,
+        # backpropagate the loss, and then update weights
+        self.actor_optimizer.zero_grad()
+        loss.backward()
+        self.actor_optimizer.step()
+
+    def _update_critic(self, state, action, reward, next_state, done):
         """
         Update the critic network.
         """
-        k = 1
+        # get the target part of the TD
+        # prevent use of target networks from affecting their gradients
+        with torch.no_grad():
+            target_action = self.actor_target(next_state)
+            target_qvalue = self.critic_target(next_state, target_action)
+            td_target = reward + (self.gamma * target_qvalue * (1 - done))
+
+        # get the online critic's Q-value
+        online_qvalue = self.critic(state, action)
+
+        # compute loss
+        loss = nn.MSELoss()
+        td = loss(online_qvalue, td_target)
+
+        # remove gradient from previous updates,
+        # backpropagate the loss, and then update weights
+        self.critic_optimizer.zero_grad()
+        td.backward()
+        self.critic_optimizer.step()
 
     def _soft_update_target(self, network_type):
         """
@@ -222,4 +299,53 @@ class CustomDDPG:
         self._logger = logger
         # might need to import logger.py from stable_baselines3
 
+    def save(self, save_path : str):
+        """
+        Save the CustomDDPG agent to a zip file.
+        """
+        torch.save({"actor": self.actor.state_dict(),
+                    "actor_target": self.actor_target.state_dict(),
+                    "critic": self.critic.state_dict(),
+                    "critic_target": self.critic_target.state_dict(),
+                    "actor_optimizer": self.actor_optimizer.state_dict(),
+                    "critic_optimizer": self.critic_optimizer.state_dict(),
+                    "action_noise": self.action_noise,
+                    "buffer_size": self.replay_buffer.buffer_size,
+                    "batch_size": self.batch_size,
+                    "learning_rate": self.learning_rate,
+                    "gamma": self.gamma,
+                    "tau": self.tau
+                    },
+                   save_path)
 
+    @classmethod
+    def load(cls,
+             save_path : str,
+             env=None,
+             seed=0):
+        """
+        Load an old CustomDDPG agent from a zip file.
+        """
+        # get hyperparameters from zip file
+        hyperparameters_dict = torch.load(save_path)
+
+        # create agent
+        agent = cls(env=env,
+                    action_noise=hyperparameters_dict["action_noise"],
+                    seed=seed,
+                    buffer_size=hyperparameters_dict["buffer_size"],
+                    batch_size=hyperparameters_dict["batch_size"],
+                    learning_rate=hyperparameters_dict["learning_rate"],
+                    gamma=hyperparameters_dict["gamma"],
+                    tau=hyperparameters_dict["tau"]
+                    )
+
+        # load network weights
+        agent.actor.load_state_dict(hyperparameters_dict["actor"])
+        agent.actor_target.load_state_dict(hyperparameters_dict["actor_target"])
+        agent.critic.load_state_dict(hyperparameters_dict["critic"])
+        agent.critic_target.load_state_dict(hyperparameters_dict["critic_target"])
+        agent.actor_optimizer.load_state_dict(hyperparameters_dict["actor_optimizer"])
+        agent.critic_optimizer.load_state_dict(hyperparameters_dict["critic_optimizer"])
+
+        return agent

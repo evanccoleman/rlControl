@@ -54,6 +54,8 @@ def create_agent(agent_type: str = None,
             agent = SAC.load(load_agent, env=env, seed=seed)
         elif agent_type == "rppo":
             agent = RecurrentPPO.load(load_agent, env=env, seed=seed)
+        elif agent_type == "custom_ddpg":
+            agent = CustomDDPG.load(load_agent, env=env, seed=seed)
         else:
             raise Exception(f"Agent {agent_type} not implemented.")
 
