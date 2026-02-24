@@ -122,9 +122,11 @@ def create_agent(agent_type: str = None,
 
         elif agent_type == "custom_ddpg":
             # noise objects for DDPG
+            std = param_settings["action_noise"]
+            del param_settings["action_noise"]
             n_actions = env.action_space.shape[-1]
             action_noise = NormalActionNoise(mean=np.zeros(n_actions),
-                                             sigma=0.1*np.ones(n_actions),
+                                             sigma=std*np.ones(n_actions),
                                              )
             agent = CustomDDPG(env,
                                action_noise=action_noise,

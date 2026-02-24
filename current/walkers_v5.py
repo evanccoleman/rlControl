@@ -136,8 +136,11 @@ def main() -> None:
 
         # first round of training
         # already reset env after creation
-        agent.learn(total_timesteps=args.num_train,
-                    callback=eval_callback)
+        if agent_type == "custom_ddpg":
+            agent.learn(total_timesteps=args.num_train)
+        else:
+            agent.learn(total_timesteps=args.num_train,
+                        callback=eval_callback)
         training_rng_state = env.np_random.bit_generator.state
 
         # first round of testing
@@ -161,10 +164,13 @@ def main() -> None:
             env.np_random.bit_generator.state = training_rng_state
             env.reset()
             # set reset_num_timesteps to False so that gradients update
-            agent.learn(total_timesteps=args.training_interval,
-                        callback=eval_callback,
-                        reset_num_timesteps=False,
-                        )
+            if agent_type == "custom_ddpg":
+                agent.learn(total_timesteps=args.training_interval)
+            else:
+                agent.learn(total_timesteps=args.training_interval,
+                            callback=eval_callback,
+                            reset_num_timesteps=False,
+                            )
             training_rng_state = env.np_random.bit_generator.state
 
             # round of testing
@@ -188,7 +194,7 @@ def main() -> None:
                              oned_nparray=final_avgs,
                              twod_nparray=all_agent_avgs,
                              )
-                agent.save(f"{saved_agents_path}/ver_{j + 1}")
+                agent.save(f"{saved_agents_path}/ver_{j + 1}.zip")
 
         # close envs
         eval_env.close()

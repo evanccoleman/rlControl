@@ -85,14 +85,14 @@ def read_command(argv) -> Namespace:
                         metavar="J", help="The number of steps to \
                                 train for between testing (default 1_000).")
     parser.add_argument("-k", "--num_test",
-                        type=int, default=5,
+                        type=int, default=10,
                         metavar="K", help="The number of episodes to \
-                                test for (default 5).")
+                                test for (default 10).")
     parser.add_argument("-m", "--max_steps",
-                        type=int, default=5_000,
+                        type=int, default=11_000,
                         metavar="M", help="The max number of steps to \
                                 train for, then program ends (default \
-                                5_000")
+                                11_000")
 
     # other program options
     parser.add_argument("-q", "--quiet",

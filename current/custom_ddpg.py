@@ -101,6 +101,8 @@ class CustomDDPG:
                  learning_rate: float = 0.001,
                  gamma: float = 0.99,
                  tau: float = 0.005,
+                 learning_starts: int = 1000,
+                 train_freq: int = 50,
                  ):
         """
         Create a CustomDDPG agent.
@@ -126,6 +128,8 @@ class CustomDDPG:
         self.gamma = gamma
         self.tau = tau
         self.seed = seed
+        self.learning_starts = learning_starts
+        self.train_freq = train_freq
 
         # get dimensions from env
         obs_dim = env.observation_space.shape[0]
@@ -175,7 +179,10 @@ class CustomDDPG:
                 self._store_transition(obs, action, reward, next_obs, terminated)
 
                 # sample minibatch and learn from past experiences
-                if len(self.replay_buffer.buffer) >= self.batch_size:
+                # only do this when: buffer is full enough,
+                # learning should start, and we're at a learning interval
+                if (len(self.replay_buffer.buffer) >= self.batch_size) and \
+                (i > self.learning_starts) and (i % self.train_freq == 0):
 
                     # sampel minibatch
                     batch_of_tensors = self._sample_batch()
@@ -220,10 +227,17 @@ class CustomDDPG:
         Raw batch is list of tuples (state, action, reward, next_state, done);
         instead, return list of tensors [state tensor, action tensor, etc.]
         """
+        # gather each grouped_tuple into a single numpy array for efficiency
         batch_as_tuples = self.replay_buffer.sample(self.batch_size)
         grouped_tuples = zip(*batch_as_tuples)
-        batch_as_tensors = [torch.Tensor(the_tuple) for the_tuple
+        batch_as_tensors = [torch.Tensor(np.array(group)) for group
                             in grouped_tuples]
+
+        # reshape rewards and dones from (batch,) to (batch, 1)
+        batch_as_tensors[2] = batch_as_tensors[2].unsqueeze(1)
+        batch_as_tensors[4] = batch_as_tensors[4].unsqueeze(1)
+
+        # return
         return batch_as_tensors
 
 
@@ -294,10 +308,12 @@ class CustomDDPG:
 
     def set_logger(self, logger = None):
         """
-        Change where logger output goes.
+        No-op member function.
+
+        The main program walkers_v5.py calls set_logger().
+        This exists so that CustomDDPG compiles with it.
         """
         self._logger = logger
-        # might need to import logger.py from stable_baselines3
 
     def save(self, save_path : str):
         """
@@ -314,7 +330,9 @@ class CustomDDPG:
                     "batch_size": self.batch_size,
                     "learning_rate": self.learning_rate,
                     "gamma": self.gamma,
-                    "tau": self.tau
+                    "tau": self.tau,
+                    "learning_starts": self.learning_starts,
+                    "train_freq": self.train_freq
                     },
                    save_path)
 
@@ -337,7 +355,9 @@ class CustomDDPG:
                     batch_size=hyperparameters_dict["batch_size"],
                     learning_rate=hyperparameters_dict["learning_rate"],
                     gamma=hyperparameters_dict["gamma"],
-                    tau=hyperparameters_dict["tau"]
+                    tau=hyperparameters_dict["tau"],
+                    learning_starts=hyperparameters_dict["learning_starts"],
+                    train_freq=hyperparameters_dict["train_freq"],
                     )
 
         # load network weights
@@ -348,4 +368,5 @@ class CustomDDPG:
         agent.actor_optimizer.load_state_dict(hyperparameters_dict["actor_optimizer"])
         agent.critic_optimizer.load_state_dict(hyperparameters_dict["critic_optimizer"])
 
+        # return
         return agent
