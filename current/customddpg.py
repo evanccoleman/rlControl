@@ -5,6 +5,7 @@ from collections import defaultdict
 import random
 import torch
 import torch.nn as nn
+from stable_baselines3.common.noise import NormalActionNoise
 
 class ReplayBuffer:
     """
@@ -95,6 +96,8 @@ class CustomDDPG:
                  env=None,
                  action_noise=0.1,
                  seed: int = None,
+                 replay_buffer=None,
+                 replay_position=None,
                  buffer_size: int = 1_000_000,
                  batch_size: int = 256,
                  learning_rate: float = 0.001,
@@ -102,6 +105,7 @@ class CustomDDPG:
                  tau: float = 0.005,
                  learning_starts: int = 1000,
                  train_freq: int = 50,
+                 timesteps_counter: int = 0,
                  ):
         """
         Create a CustomDDPG agent.
@@ -121,6 +125,11 @@ class CustomDDPG:
         self.replay_buffer = ReplayBuffer(buffer_size)
         self.batch_size = batch_size
 
+        # restore replay buffer state if loaded agent
+        if replay_buffer is not None: 
+            self.replay_buffer.buffer = replay_buffer
+            self.replay_buffer.position = replay_position
+
         # other settings
         self.action_noise = action_noise # just sigma
         self.learning_rate = learning_rate 
@@ -129,6 +138,7 @@ class CustomDDPG:
         self.seed = seed
         self.learning_starts = learning_starts
         self.train_freq = train_freq
+        self.timesteps_counter = timesteps_counter
 
         # get dimensions from env
         obs_dim = env.observation_space.shape[0]
@@ -159,20 +169,20 @@ class CustomDDPG:
         """
 
         # train for total_timesteps
-        i = 1 # start step
-        while i < total_timesteps + 1:
+        total_timesteps_target = self.timesteps_counter + total_timesteps
+        while self.timesteps_counter < total_timesteps_target:
             obs, info = self.env.reset() # reset env
             is_episode_over = False # loop control variable
 
             # one full episode
-            while (i < total_timesteps + 1) and (not is_episode_over):
+            while (self.timesteps_counter < total_timesteps_target) and (not is_episode_over):
 
                 # agent chooses action
                 action, _ = self.predict(obs, deterministic=False)
 
                 # environment applies action
                 next_obs, reward, terminated, trunc, info = self.env.step(action)
-                i = i + 1
+                self.timesteps_counter = self.timesteps_counter + 1
 
                 # store transition
                 self._store_transition(obs, action, reward, next_obs, terminated)
@@ -181,7 +191,8 @@ class CustomDDPG:
                 # only do this when: buffer is full enough,
                 # learning should start, and we're at a learning interval
                 if (len(self.replay_buffer.buffer) >= self.batch_size) and \
-                (i > self.learning_starts) and (i % self.train_freq == 0):
+                (self.timesteps_counter > self.learning_starts) and \
+                (self.timesteps_counter % self.train_freq == 0):
 
                     # sampel minibatch
                     batch_of_tensors = self._sample_batch()
@@ -318,21 +329,23 @@ class CustomDDPG:
         """
         Save the CustomDDPG agent to a zip file.
         """
-        print(self.action_noise)
         torch.save({"actor": self.actor.state_dict(),
                     "actor_target": self.actor_target.state_dict(),
                     "critic": self.critic.state_dict(),
                     "critic_target": self.critic_target.state_dict(),
                     "actor_optimizer": self.actor_optimizer.state_dict(),
                     "critic_optimizer": self.critic_optimizer.state_dict(),
-                    "action_noise": self.action_noise,
+                    "action_noise": self.action_noise._sigma[0], # just sigma
+                    "replay_buffer": self.replay_buffer.buffer,
+                    "replay_position": self.replay_buffer.position,
                     "buffer_size": self.replay_buffer.buffer_size,
                     "batch_size": self.batch_size,
                     "learning_rate": self.learning_rate,
                     "gamma": self.gamma,
                     "tau": self.tau,
                     "learning_starts": self.learning_starts,
-                    "train_freq": self.train_freq
+                    "train_freq": self.train_freq,
+                    "timesteps_counter": self.timesteps_counter
                     },
                    save_path)
 
@@ -347,12 +360,22 @@ class CustomDDPG:
         This does not work.
         """
         # get hyperparameters from zip file
-        hyperparameters_dict = torch.load(save_path, weights_only=True)
+        hyperparameters_dict = torch.load(save_path, weights_only=False)
+
+        # create action noise object
+        std = hyperparameters_dict["action_noise"]
+        del hyperparameters_dict["action_noise"]
+        n_actions = env.action_space.shape[-1]
+        action_noise = NormalActionNoise(mean=np.zeros(n_actions),
+                                         sigma=std*np.ones(n_actions),
+                                         )
 
         # create agent
         agent = cls(env=env,
-                    action_noise=hyperparameters_dict["action_noise"],
+                    action_noise=action_noise,
                     seed=seed,
+                    replay_buffer=hyperparameters_dict["replay_buffer"],
+                    replay_position=hyperparameters_dict["replay_position"],
                     buffer_size=hyperparameters_dict["buffer_size"],
                     batch_size=hyperparameters_dict["batch_size"],
                     learning_rate=hyperparameters_dict["learning_rate"],
@@ -360,6 +383,7 @@ class CustomDDPG:
                     tau=hyperparameters_dict["tau"],
                     learning_starts=hyperparameters_dict["learning_starts"],
                     train_freq=hyperparameters_dict["train_freq"],
+                    timesteps_counter=hyperparameters_dict["timesteps_counter"],
                     )
 
         # load network weights
