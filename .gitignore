@@ -5,8 +5,8 @@
 .DS_STORE
 
 # ignore outputs
+# manually manage outputs instead
 outputs/
-saved_agents/
 
 # ignore cache
 __pycache__/
