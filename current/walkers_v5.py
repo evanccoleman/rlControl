@@ -94,8 +94,8 @@ def main() -> None:
         agent = create_agent(agent_type=agent_type,
                              load_agent=args.load_agent,
                              env=env,
-                             seed=seeds[i],
                              params_file=args.hyperparameters_file,
+                             seed=seeds[i],
                              )
 
         # change where rollout output from stable_baselines3 logger goes

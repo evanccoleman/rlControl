@@ -87,9 +87,9 @@ class Critic(nn.Module):
         return self.net(torch.cat([state, action], dim=-1))
 
 
-class CustomDDPG:
+class FrameDDPG:
     """
-    Custom DDPG agent.
+    Custom DDPG agent with framestacking.
     """
 
     def __init__(self,

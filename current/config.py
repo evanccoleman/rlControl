@@ -17,7 +17,8 @@ def read_command(argv) -> Namespace:
     usage_str = """
     USAGE:      python walkers_v5.py -a ppo -e Hopper-v5 <options>
     NOTE:       POMDP envs should only have POMDP agents.
-                Basically, you can either use -a or -l, not both.
+                You can either use -a or -l, not both.
+
     EXAMPLES:   (1) python walkers_v5.py
                         -a {agent_type}
                         -e {env_type}
@@ -27,6 +28,7 @@ def read_command(argv) -> Namespace:
                         -k {num_testing}
                         -m {max_steps}
                         -p {pomdp_type}
+                        --framestack 0
                         -f {../param_files/hyperparameters_file.json}
                         -q (quiet)
                 (2) python walkers_v5.py
@@ -38,6 +40,7 @@ def read_command(argv) -> Namespace:
                         -k {num_testing}
                         -m {max_steps}
                         -p {pomdp_type}
+                        --franestack 0
                         -q (quiet)
     """
 
@@ -64,6 +67,10 @@ def read_command(argv) -> Namespace:
                                 random_sensor_missing, or some combo \
                                 (refer to POMDPWrapper() constructor \
                                 for more)")
+    parser.add_argument("--framestack",
+                        type=int, default=0,
+                        help="How many frames to stack (default 0, \
+                                which is no framestacking.")
     parser.add_argument("-f", "--hyperparameters_file",
                         type=str, default=None,
                         metavar="F", help="Name of the file to load from \
