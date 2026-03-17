@@ -4,6 +4,7 @@ import numpy as np
 from datetime import datetime as dt
 
 from customddpg import CustomDDPG
+from frameddpg impot FrameDDPG
 
 from stable_baselines3 import PPO, DDPG, SAC, TD3
 from stable_baselines3.common.noise import NormalActionNoise
@@ -56,6 +57,8 @@ def create_agent(agent_type: str = None,
             agent = RecurrentPPO.load(load_agent, env=env, seed=seed)
         elif agent_type == "customddpg":
             agent = CustomDDPG.load(load_agent, env=env, seed=seed)
+        elif agent_type == "frameddpg":
+            agent = FrameDDPG.load(load_agent, env=env, seed=seed)
         else:
             raise Exception(f"Agent {agent_type} not implemented.")
 
@@ -133,6 +136,20 @@ def create_agent(agent_type: str = None,
                                seed=seed,
                                **param_settings,
                                )
+        elif agent_type == "customddpg":
+            # noise objects for DDPG
+            std = param_settings["action_noise"] # just sigma
+            del param_settings["action_noise"]
+            n_actions = env.action_space.shape[-1]
+            action_noise = NormalActionNoise(mean=np.zeros(n_actions),
+                                             sigma=std*np.ones(n_actions),
+                                             )
+            agent = FrameDDPG(env,
+                              action_noise=action_noise, # noise obj
+                              seed=seed,
+                              **param_settings,
+                              )
+
 
     return agent
 
