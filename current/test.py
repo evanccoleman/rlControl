@@ -35,12 +35,12 @@ def main() -> None:
     obs, _ = env.reset()
     print(obs.shape)
 
-#    agent = create_agent(agent_type="frameddpg",
-#                         load_agent=None,
-#                         env=env,
-#                         params_file=None,
-#                         seed=42,
-#                         )
+    agent = create_agent(agent_type="frameddpg",
+                         load_agent=None,
+                         env=env,
+                         params_file=None,
+                         seed=42,
+                         )
 
                          
 
