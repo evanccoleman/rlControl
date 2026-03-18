@@ -95,6 +95,7 @@ class FrameDDPG:
     def __init__(self,
                  env=None,
                  action_noise=0.1,
+                 stack_size: int = 0,
                  seed: int = None,
                  replay_buffer=None,
                  replay_position=None,
@@ -106,7 +107,6 @@ class FrameDDPG:
                  learning_starts: int = 1000,
                  train_freq: int = 50,
                  timesteps_counter: int = 0,
-                 stack_size: int = 0,
                  ):
         """
         Create a CustomDDPG agent.
@@ -122,6 +122,11 @@ class FrameDDPG:
         # env
         self.env = env
 
+        # make deque
+        # the newest raw obs goes in the rightmost slot
+        self.stack_size = stack_size
+        self.deque = collections.deque(maxlen=self.stack_size)
+
         # replay buffer
         self.replay_buffer = ReplayBuffer(buffer_size)
         self.batch_size = batch_size
@@ -130,11 +135,6 @@ class FrameDDPG:
         if replay_buffer is not None: 
             self.replay_buffer.buffer = replay_buffer
             self.replay_buffer.position = replay_position
-
-        # make deque
-        # the newest raw obs goes in the rightmost slot
-        self.stack_size = stack_size
-        self.deque = collections.deque(maxlen=self.stack_size)
 
         # other settings
         self.action_noise = action_noise # just sigma
@@ -179,12 +179,13 @@ class FrameDDPG:
         total_timesteps_target = self.timesteps_counter + total_timesteps
         while self.timesteps_counter < total_timesteps_target:
 
-            # get enough obs to fill deque
-            for _ in range(0, self.stack_size):
-                obs, _ = self.env.reset()
-                self.deque.append(obs)
-
+            obs, _ = self.env.reset() # reset env
             is_episode_over = False # loop control variable
+
+            # fill deque with duplicated obs
+            # "we haven't moved yet"
+            for _ in range(0, self.stack_size):
+                self.deque.append(obs)
 
             # one full episode
             while (self.timesteps_counter < total_timesteps_target) and (not is_episode_over):
@@ -357,6 +358,7 @@ class FrameDDPG:
                     "actor_optimizer": self.actor_optimizer.state_dict(),
                     "critic_optimizer": self.critic_optimizer.state_dict(),
                     "action_noise": self.action_noise._sigma[0], # just sigma
+                    "stack_size": self.stack_size,
                     "replay_buffer": self.replay_buffer.buffer,
                     "replay_position": self.replay_buffer.position,
                     "buffer_size": self.replay_buffer.buffer_size,
@@ -394,6 +396,7 @@ class FrameDDPG:
         # create agent
         agent = cls(env=env,
                     action_noise=action_noise,
+                    stack_size=hyperparameters_dict["stack_size"],
                     seed=seed,
                     replay_buffer=hyperparameters_dict["replay_buffer"],
                     replay_position=hyperparameters_dict["replay_position"],

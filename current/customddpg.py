@@ -171,6 +171,7 @@ class CustomDDPG:
         # train for total_timesteps
         total_timesteps_target = self.timesteps_counter + total_timesteps
         while self.timesteps_counter < total_timesteps_target:
+
             obs, info = self.env.reset() # reset env
             is_episode_over = False # loop control variable
 

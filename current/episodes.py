@@ -1,7 +1,7 @@
 # episodes.py
 
 import random
-
+import collections
 import torch
 import numpy as np
 import gymnasium as gym
@@ -107,6 +107,59 @@ def run_episode_lstm(agent,
     else:
         return info["episode"]["r"]
 
+def run_episode_framestacking(agent,
+                              env: gym.Env,
+                              discount: bool = False,
+                              ) -> int:
+    """
+    Executes a single episode for an agent without LSTM.
+
+    Returns the episode rewards.
+    """
+
+    # create deque for testing external to the agent
+    deque = collections.deque(maxlen=agent.stack_size)
+
+    obs, info = env.reset() # reset env
+    episode_rewards = 0 # track episode returns
+    total_discount = 1
+    is_episode_over = False # loop control variable
+
+    # fill deque with duplicated obs
+    # "we haven't moved yet"
+    for _ in range(0, agent.stack_size):
+        deque.append(obs)
+
+    # take actions and update agent until episode termination
+    while not is_episode_over:
+
+        # agent chooses action
+        stacked_obs = np.array(deque).flatten()
+        action, _states = agent.predict(stacked_obs, deterministic=True)
+
+        # environment applies action
+        next_obs, reward, terminated, trunc, info = env.step(action)
+
+        # add next_obs to deque
+        deque.append(next_obs)
+        stacked_next_obs = np.array(self.deque).flatten()
+
+        # move to the next state
+        obs = next_obs
+        is_episode_over = terminated or trunc
+
+        # update episode returns
+        episode_rewards += reward * total_discount
+        total_discount *= agent.gamma
+
+    # return episode returns
+    if discount:
+        return episode_rewards
+    else:
+        return info["episode"]["r"]
+
+
+
 def run_many_episodes(agent,
                       env,
                       num_episodes: int = 0,
@@ -134,6 +187,9 @@ def run_many_episodes(agent,
         if agent_type == "rppo":
             episode_rewards = run_episode_lstm(agent, env,
                                              discount=discount)
+        elif agent_type == "frameddpg":
+            episode_rewards = run_episode_framestacking(agent, env,
+                                                        discount=discount)
         else:
             episode_rewards = run_episode(agent, env,
                                          discount=discount)
