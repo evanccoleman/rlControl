@@ -4,6 +4,7 @@ import numpy as np
 from datetime import datetime as dt
 
 from customddpg import CustomDDPG
+from frameddpg import FrameDDPG
 
 from stable_baselines3 import PPO, DDPG, SAC, TD3
 from stable_baselines3.common.noise import NormalActionNoise
@@ -35,6 +36,7 @@ def create_agent(agent_type: str = None,
                  load_agent: str = None,
                  env=None,
                  params_file: str = None,
+                 stack_size: int = 0,
                  seed: int = 0,
                  ):
     """
@@ -146,6 +148,7 @@ def create_agent(agent_type: str = None,
                                              )
             agent = FrameDDPG(env,
                               action_noise=action_noise, # noise obj
+                              stack_size=stack_size,
                               seed=seed,
                               **param_settings,
                               )

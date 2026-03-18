@@ -220,7 +220,7 @@ class CustomDDPG:
         """
         state_tensor = torch.FloatTensor(state)
         action = self.actor(state_tensor)
-        if not deterministic:
+        if not deterministic and self.action_noise is not None:
             action = action + torch.FloatTensor(self.action_noise())
         return action.detach().numpy(), None
     

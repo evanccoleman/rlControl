@@ -28,21 +28,28 @@ def main() -> None:
     env = create_env(env_type=args.env_type,
                      quiet=args.quiet,
                      pomdp_type=args.pomdp_type,
-                     framestack=args.framestack,
                      )
 
-    print(env.observation_space)
     obs, _ = env.reset()
-    print(obs.shape)
 
-    agent = create_agent(agent_type="frameddpg",
-                         load_agent=None,
+    agent = create_agent(agent_type=args.agent_type,
                          env=env,
-                         params_file=None,
+                         params_file=args.hyperparameters_file,
+                         stack_size=args.stack_size,
                          seed=42,
                          )
 
-                         
+    agent.deque.append(np.array([1, 2]))
+    agent.deque.append(np.array([3, 4]))
+    agent.deque.append(np.array([5, 6]))
+    agent.deque.append(np.array([7, 8]))
+
+    stacked_obs = np.array(agent.deque).flatten()
+
+    print(f"obs shape: {obs.shape}\n")
+    print(f"obs: {obs}\n")
+    print(f"agent.deque: {agent.deque}\n")
+    print(f"stacked_obs: {stacked_obs}\n")
 
 if __name__ == "__main__":
 

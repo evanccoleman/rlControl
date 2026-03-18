@@ -28,8 +28,8 @@ def read_command(argv) -> Namespace:
                         -k {num_testing}
                         -m {max_steps}
                         -p {pomdp_type}
-                        --framestack 0
-                        -f {../param_files/hyperparameters_file.json}
+                        -f 0
+                        -x {../param_files/hyperparameters_file.json}
                         -q (quiet)
                 (2) python walkers_v5.py
                         -l {../saved_agents/filename}
@@ -40,7 +40,7 @@ def read_command(argv) -> Namespace:
                         -k {num_testing}
                         -m {max_steps}
                         -p {pomdp_type}
-                        --franestack 0
+                        -f 0
                         -q (quiet)
     """
 
@@ -67,13 +67,13 @@ def read_command(argv) -> Namespace:
                                 random_sensor_missing, or some combo \
                                 (refer to POMDPWrapper() constructor \
                                 for more)")
-    parser.add_argument("--framestack",
+    parser.add_argument("-f", "--stack_size",
                         type=int, default=0,
-                        help="How many frames to stack (default 0, \
+                        metavar="F", help="How many frames to stack (default 0, \
                                 which is no framestacking.")
-    parser.add_argument("-f", "--hyperparameters_file",
+    parser.add_argument("-x", "--hyperparameters_file",
                         type=str, default=None,
-                        metavar="F", help="Name of the file to load from \
+                        metavar="X", help="Name of the file to load from \
                                 for a new agent's hyperparameter settings \
                                 (default None).")
 

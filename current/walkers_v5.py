@@ -89,13 +89,13 @@ def main() -> None:
         env = create_env(env_type=args.env_type,
                          quiet=args.quiet,
                          pomdp_type=args.pomdp_type,
-                         framestack=args.framestack,
                          )
         env.reset(seed=seeds[i])
         agent = create_agent(agent_type=agent_type,
                              load_agent=args.load_agent,
                              env=env,
                              params_file=args.hyperparameters_file,
+                             stack_size=args.stack_size,
                              seed=seeds[i],
                              )
 

@@ -1,7 +1,7 @@
 # customddpg.py
 
 import numpy as np
-from collections import defaultdict
+import collections
 import random
 import torch
 import torch.nn as nn
@@ -106,6 +106,7 @@ class FrameDDPG:
                  learning_starts: int = 1000,
                  train_freq: int = 50,
                  timesteps_counter: int = 0,
+                 stack_size: int = 0,
                  ):
         """
         Create a CustomDDPG agent.
@@ -130,6 +131,11 @@ class FrameDDPG:
             self.replay_buffer.buffer = replay_buffer
             self.replay_buffer.position = replay_position
 
+        # make deque
+        # the newest raw obs goes in the rightmost slot
+        self.stack_size = stack_size
+        self.deque = collections.deque(maxlen=self.stack_size)
+
         # other settings
         self.action_noise = action_noise # just sigma
         self.learning_rate = learning_rate 
@@ -141,7 +147,8 @@ class FrameDDPG:
         self.timesteps_counter = timesteps_counter
 
         # get dimensions from env
-        obs_dim = env.observation_space.shape[0]
+        raw_obs_dim = env.observation_space.shape[0]
+        obs_dim = raw_obs_dim * stack_size
         action_dim = env.action_space.shape[0]
         action_high = env.action_space.high
 
@@ -171,21 +178,35 @@ class FrameDDPG:
         # train for total_timesteps
         total_timesteps_target = self.timesteps_counter + total_timesteps
         while self.timesteps_counter < total_timesteps_target:
-            obs, info = self.env.reset() # reset env
+
+            # get enough obs to fill deque
+            for _ in range(0, self.stack_size):
+                obs, _ = self.env.reset()
+                self.deque.append(obs)
+
             is_episode_over = False # loop control variable
 
             # one full episode
             while (self.timesteps_counter < total_timesteps_target) and (not is_episode_over):
-
-                # agent chooses action
-                action, _ = self.predict(obs, deterministic=False)
+                
+                # agent chooses action using deque
+                stacked_obs = np.array(self.deque).flatten()
+                action, _ = self.predict(stacked_obs, deterministic=False)
 
                 # environment applies action
-                next_obs, reward, terminated, trunc, info = self.env.step(action)
+                next_obs, reward, terminated, trunc, _ = self.env.step(action)
                 self.timesteps_counter = self.timesteps_counter + 1
 
+                # add next_obs to deque
+                self.deque.append(next_obs)
+                stacked_next_obs = np.array(self.deque).flatten()
+
                 # store transition
-                self._store_transition(obs, action, reward, next_obs, terminated)
+                self._store_transition(stacked_obs,
+                                       action,
+                                       reward,
+                                       stacked_next_obs,
+                                       terminated)
 
                 # sample minibatch and learn from past experiences
                 # only do this when: buffer is full enough,
@@ -220,7 +241,7 @@ class FrameDDPG:
         """
         state_tensor = torch.FloatTensor(state)
         action = self.actor(state_tensor)
-        if not deterministic:
+        if not deterministic and self.action_noise is not None:
             action = action + torch.FloatTensor(self.action_noise())
         return action.detach().numpy(), None
     
