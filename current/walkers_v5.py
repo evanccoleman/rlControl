@@ -95,7 +95,6 @@ def main() -> None:
                              load_agent=args.load_agent,
                              env=env,
                              params_file=args.hyperparameters_file,
-                             stack_size=args.stack_size,
                              seed=seeds[i],
                              )
 
@@ -137,7 +136,7 @@ def main() -> None:
 
         # first round of training
         # already reset env after creation
-        if agent_type == "customddpg":
+        if agent_type == "customddpg" or agent_type == "frameddpg":
             agent.learn(total_timesteps=args.num_train)
         else:
             agent.learn(total_timesteps=args.num_train,
@@ -165,7 +164,7 @@ def main() -> None:
             env.np_random.bit_generator.state = training_rng_state
             env.reset()
             # set reset_num_timesteps to False so that gradients update
-            if agent_type == "customddpg":
+            if agent_type == "customddpg" or agent_type == "frameddpg":
                 agent.learn(total_timesteps=args.training_interval)
             else:
                 agent.learn(total_timesteps=args.training_interval,

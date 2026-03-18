@@ -142,7 +142,6 @@ def run_episode_framestacking(agent,
 
         # add next_obs to deque
         deque.append(next_obs)
-        stacked_next_obs = np.array(self.deque).flatten()
 
         # move to the next state
         obs = next_obs
