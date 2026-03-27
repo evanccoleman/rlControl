@@ -1,4 +1,4 @@
-# output.py
+# write_output.py
 
 import os
 import numpy as np

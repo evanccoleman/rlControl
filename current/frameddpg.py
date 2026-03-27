@@ -1,4 +1,4 @@
-# customddpg.py
+# frameddpg.py
 
 import numpy as np
 import collections
