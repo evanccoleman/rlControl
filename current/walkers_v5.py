@@ -8,6 +8,7 @@ from datetime import datetime as dt
 import sys
 from tqdm import tqdm
 import os
+import shutil
 
 from stable_baselines3.common.callbacks import EvalCallback
 from stable_baselines3.common.logger import configure
@@ -81,6 +82,10 @@ def main() -> None:
                               dtype=float,
                               )
 
+    # track the best agent and version across all agents
+    best_score = -np.inf
+    best_save_path = None
+
     # train and test agents one at a time
     for i in range(len(seeds) // 2):
 
@@ -117,7 +122,6 @@ def main() -> None:
         saved_agents_path = (f"../outputs/saved_agents/"
                            f"{output_filename}/"
                            f"agent{i}_seed{seeds[i]}/")
-        os.makedirs(saved_agents_path, exist_ok=True)
         evalcallback_path = (f"../outputs/eval_callbacks/"
                              f"{output_filename}/"
                              f"agent{i}_seed{seeds[i]}")
@@ -185,7 +189,7 @@ def main() -> None:
             all_agent_avgs[i][j] = ep_eval_avg
             testing_rng_state = env.np_random.bit_generator.state
 
-            # periodically save rewards and agent (every 10 training intervals)
+            # periodically save rewards and best agent (every 10 training intervals)
             if (j + 1) % 10 == 0:
                 final_avgs = np.mean(all_agent_avgs, axis=0)
                 # overwrite old rewards because they do not matter
@@ -194,7 +198,16 @@ def main() -> None:
                              oned_nparray=final_avgs,
                              twod_nparray=all_agent_avgs,
                              )
-                agent.save(f"{saved_agents_path}/ver_{j + 1}.zip")
+                # save agent only if it's the best so far
+                if all_agent_avgs[i][j] > best_score:
+                    # delete old best agent directory if it exists
+                    if best_save_path is not None:
+                        shutil.rmtree(os.path.dirname(best_save_path),
+                                      ignore_errors=True)
+                    best_score = all_agent_avgs[i][j]
+                    best_save_path = f"{saved_agents_path}/ver_{j + 1}.zip"
+                    os.makedirs(saved_agents_path, exist_ok=True)
+                    agent.save(best_save_path)
 
         # close envs
         eval_env.close()
