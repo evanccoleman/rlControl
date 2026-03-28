@@ -15,11 +15,11 @@ def read_command(argv) -> Namespace:
 
     # instructions for how to run walkers_v5.py found using -h
     usage_str = """
-    USAGE:      python walkers_v5.py -a ppo -e Hopper-v5 <options>
-    NOTE:       POMDP envs should only have POMDP agents.
-                You can either use -a or -l, not both.
+    USAGE:      python walkers_v5.py -a {agent} -e {env} <options>
+    NOTE:       POMDP envs should only load POMDP agents.
 
-    EXAMPLES:   (1) python walkers_v5.py
+    EXAMPLES:   (1) Create a new agent.
+                    python walkers_v5.py
                         -a {agent_type}
                         -e {env_type}
                         -n {num_agent_env_pairs}
@@ -30,7 +30,8 @@ def read_command(argv) -> Namespace:
                         -p {pomdp_type}
                         -f {../param_files/hyperparameters_file.json}
                         -q (quiet)
-                (2) python walkers_v5.py
+                (2) Load an existing agent.
+                    python walkers_v5.py
                         -l {../saved_agents/filename}
                         -e {env_type}
                         -n {num_agent_env_pairs}
