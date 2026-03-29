@@ -36,6 +36,7 @@ envs/ --> factory to create envs, POMDP wrapper
 Training:
 training/ --> run the walkers_v5.py training script
 outputs/ --> eval callbacks, info on runs, and saved agents from training
+             graphs from graphing
 param_files/ --> stores hyperparameters to try to train new agents on
 
 Tuning:

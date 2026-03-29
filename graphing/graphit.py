@@ -14,7 +14,7 @@ def read_command(argv) -> Namespace:
     """
 
     usage_str = """
-    USAGE: python graphit.py -x test_two_ppo.json
+    USAGE: python graphit.py -x instructions/test_two_ppo.json
     """
 
     parser = argparse.ArgumentParser(usage=usage_str)
