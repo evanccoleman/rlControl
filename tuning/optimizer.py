@@ -4,6 +4,7 @@
 import numpy as np
 import gymnasium as gym
 from stable_baselines3.common.monitor import Monitor
+from stable_baselines3.common.callbacks import EvalCallback
 
 # handle parsing command line args
 import sys
@@ -14,28 +15,34 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # get other classes and custom functions
 from tuning.config import read_command
-from tuning.trialevalcallback import TrialEvalCallback
-from tuning.params_to_sample import sample_ppo_params,\
-                                    sample_ddpg_params,\
-                                    sample_td3_params,\
-                                    sample_sac_params,\
-                                    sample_rppo_params
 from tuning.write_tuned_output import save_tuned_params
+from tuning.evaluate_agents import evaluate_agent
+from tuning.load_params import load_param_settings, load_search_space
 
 # agent creation
 from stable_baselines3 import PPO, DDPG, SAC, TD3
-from stable_baselines3.common.noise import NormalActionNoise
 from sb3_contrib import RecurrentPPO
 from agents import CustomDDPG, FrameDDPG
+from training.config import read_params_file
 
 # hyperparameter tuner
 import optuna
 from optuna.pruners import MedianPruner
-from optuna.samplers import TPESampler
+from optuna.samplers import GridSampler
+import random
 import torch
 
 # pomdp wrapper
 from envs.pomdp_wrapper import POMDPWrapper
+
+def set_seed(seed):
+    """
+    Seeds Python, NumPy, and PyTorch RNGs for reproducibility.
+    """
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
 
 def create_agent(agent_type, **kwargs):
     """
@@ -58,129 +65,107 @@ def create_agent(agent_type, **kwargs):
     else:
         raise Exception(f"Agent {agent_type} is not implemented.")
 
-def objective(trial: optuna.Trial) -> float:
+def create_env(env_type: str = None,
+               pomdp_type: str = None
+               ):
     """
-    The objective function to define how to optimize.
+    Returns an MDP or POMDP environment.
     """
-    
-    # read in the options from the command line
-    # potential errors in option parsing handled in main()
-    args = read_command(sys.argv[1:])
 
-    # create environment
-    try:
-        eval_env = Monitor(gym.make(args.env_type, render_mode=None))
+    # check whether to make POMDP
+    if pomdp_type is not None:
+        eval_env = POMDPWrapper(env_type,
+                                pomdp_type=pomdp_type,
+                                render_mode=None,
+                                )
+    else:
+        eval_env = gym.make(env_type,
+                            render_mode=None)
 
-        # debug for statemaskingwrapper
-        # print(eval_env.observation_space.shape)
+    # add Monitor wrapper
+    eval_env = Monitor(eval_env)
+    return eval_env
+ 
 
-        if args.mask_indices is not None:
-            num_masks = args.mask_indices
-            eval_env = StateMaskingWrapper(eval_env,
-                                           indices_to_mask=np.arange(num_masks),
-                                           )
-        
-        # debug for statemaskingwrapper
-        # obs, info = eval_env.reset()
-        # print(obs.shape)
-        # exit()
+def make_objective(args):
+    """
+    Returns an objective function that uses args from a closure.
+    """
+    def objective(trial: optuna.Trial) -> float:
+        """
+        The objective function to define how to optimize.
 
-    except Exception as e:
-        print(f"Failed to create environment {args.env_type}: {e}")
-        raise optuna.exceptions.TrialPruned()
+        Train the agent for num_timesteps. The EvalCallback
+        pauses training periodically to evaluate performance.
 
-    # initialize hyperparameters all agent constructors need
-    kwargs = {"policy": "MlpPolicy", "env": eval_env}
-   
-    # get hyperparameters dependent on agent type
-    if args.agent_type == "ppo":
-        kwargs.update(sample_ppo_params(trial))
+        Each trial uses the same training seed and eval seed
+        so that the only variable is the hyperparameters.
+        """
 
-    elif args.agent_type == "ddpg":
-        sigma = sample_action_noise_sigma(trial) 
-        n_actions = eval_env.action_space.shape[-1]
-        action_noise = NormalActionNoise(mean=np.zeros(n_actions),
-                                         sigma=sigma*np.ones(n_actions),
-                                         )
-        kwargs.update({"action_noise": action_noise})
-        kwargs.update(sample_ddpg_params(trial))
+        train_seed = args.seed
+        eval_seed = args.seed + 1
 
-    elif args.agent_type == "td3":
-        sigma = sample_action_noise_sigma(trial)
-        n_actions = eval_env.action_space.shape[-1]
-        action_noise = NormalActionNoise(mean=np.zeros(n_actions),
-                                         sigma=sigma*np.ones(n_actions),
-                                         )
-        kwargs.update({"action_noise": action_noise})
-        kwargs.update(sample_td3_params(trial))
+        # seed global RNGs for reproducibility
+        set_seed(train_seed)
 
-    elif args.agent_type == "sac":
-        kwargs.update(sample_sac_params(trial))
+        # create training environment with training seed
+        train_env = create_env(args.env_type, args.pomdp_type)
+        train_env.reset(seed=train_seed)
 
-    elif args.agent_type == "rppo":
-        kwargs.update({"policy": "MlpLstmPolicy"})
-        kwargs.update(sample_rppo_params(trial))
+        # create eval environment with eval seed
+        eval_env = create_env(args.env_type, args.pomdp_type)
+        eval_env.reset(seed=eval_seed)
 
-    # create agent
-    try:
-        agent = create_agent(args.agent_type, **kwargs)
-    except Exception as e:
-        print(f"Failed to create agent {args.agent_type}: {e}")
-        raise optuna.exceptions.TrialPruned() 
+        # get parameter settings for an agent
+        is_custom = args.agent_type in ("customddpg", "frameddpg")
+        param_settings = {"env": train_env}
+        if not is_custom:
+            param_settings["policy"] = "MlpPolicy"
+        additional_settings = load_param_settings(agent_type=args.agent_type,
+                                                  param_file=args.hyperparameters_file,
+                                                  action_space_shape=train_env.action_space.shape[-1],
+                                                  trial=trial,
+                                                  )
+        param_settings.update(additional_settings)
 
-    # create callback to periodically evaluate and report the performance
-    eval_callback = TrialEvalCallback(eval_env,
-                                      trial,
-                                      deterministic=True,
-                                      )
-    # train agent
-    nan_encountered = False
-    try:
-        agent.learn(total_timesteps=args.num_timesteps,
-                    log_interval=5,
-                    progress_bar=True,
-                    callback=eval_callback,
-                    )
-    except AssertionError as e:
-        # sometimes, random hyperparams can generate NaN
-        print(f"Trial failed with AssertionError:")
-        print(e)
-        nan_encountered = True
-    except ValueError as e:
-        # sometimes, invalid hyperparameters cause crashes
-        print(f"Trial failed with ValueError:")
-        print(e)
-        raise optuna.exceptions.TrialPruned()
-    finally:
-        # free memory
-        agent.env.close()
-        eval_env.close()
+        # create agent with training seed
+        agent = create_agent(args.agent_type, seed=train_seed, **param_settings)
 
-    # tell the optimizer that the trial failed
-    if nan_encountered:
-        raise optuna.exceptions.TrialPruned()
+        # train and evaluate
+        try:
+            if is_custom:
+                # custom agents don't support callbacks,
+                # so train first then evaluate manually
+                agent.learn(total_timesteps=args.num_timesteps)
+                mean_reward = evaluate_agent(agent, eval_env,
+                                             agent_type=args.agent_type)
+            else:
+                eval_callback = EvalCallback(eval_env,
+                                             eval_freq=10000,
+                                             n_eval_episodes=5,
+                                             deterministic=True,
+                                             )
+                agent.learn(total_timesteps=args.num_timesteps,
+                            log_interval=5,
+                            progress_bar=True,
+                            callback=eval_callback,
+                            )
+                mean_reward = eval_callback.best_mean_reward
+        except (AssertionError, ValueError) as e:
+            print(f"Trial failed: {e}")
+            raise optuna.exceptions.TrialPruned()
+        finally:
+            # free memory
+            train_env.close()
+            eval_env.close()
 
-    if eval_callback.is_pruned:
-        raise optuna.exceptions.TrialPruned()
+        return mean_reward
 
-    # evaluate performance
-    return eval_callback.last_mean_reward
+    return objective
 
 def main():
     """
-    By defining a main() for this file,
-    other main functions in the same directory
-    are isolated from each other, so I can run
-    particular .py files when I want.
-
-    Note:
-    - Trial optimization starts at trial 0
-    - Number of finished trials includes interrupted one
-
-    Things to tweak:
-    - range of values possible for hyperparameters
-    - n_trials to optimize for
-    - num_timesteps
+    Do a sweep of a set of pre-defined parameter settings.
     
     Reference:
     https://github.com/optuna/optuna-examples/blob/main/rl/sb3_simple.py#L79
@@ -189,40 +174,37 @@ def main():
     # read in the options from the command line
     args = read_command(sys.argv[1:])
     
-    # user must specify an agent
-    if args.agent_type is None:
-        raise Exception("Must specify an agent to create.")
-
-    # user must specify an environment
-    if args.env_type is None:
-        raise Exception("Must specify an environment to create.")
-
-    # create sampler and pruner
-    sampler = TPESampler(n_startup_trials=5)
-    pruner = MedianPruner(n_startup_trials=5)
+    # load search space and create grid sampler
+    search_space = load_search_space(args.agent_type)
+    sampler = GridSampler(search_space)
 
     # create a study to optimize
     study = optuna.create_study(sampler=sampler,
-                                pruner=pruner,
                                 direction="maximize",
                                 )
 
+    # calculate number of trials
+    num_trials = 1
+    for i in search_space:
+        num_trials *= len(search_space[i])
+
     # optimize the hyperparameters
     try:
-        study.optimize(objective, n_trials=args.num_trials)
+        study.optimize(make_objective(args), n_trials=num_trials)
     except KeyboardInterrupt:
         pass
 
-    # write results as std out to a file
-    print(f"\n\nSAVING RESULTS TO A FILE...")
-    save_tuned_params(study,
-                      agent_type=args.agent_type,
-                      env_type=args.env_type,
-                      )
+    # print best results
+    print(f"\n\nBEST TRIAL:")
+    print(f"  Performance: {study.best_trial.value}")
+    for key, value in study.best_trial.params.items():
+        print(f"  {key}: {value}")
 
-    print("\n\n")
+    print("\n")
+
+    # write results to a file
+    save_tuned_params(study, args.agent_type, args.hyperparameters_file)
 
 if __name__ == "__main__":
-
     # run the main program
     main()

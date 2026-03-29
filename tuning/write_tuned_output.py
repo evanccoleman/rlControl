@@ -6,11 +6,23 @@ import optuna
 
 def save_tuned_params(study: optuna.Study,
                       agent_type: str = None,
-                      env_type: str = None,
+                      param_file: str = None,
                       ):
     """
     Saves tuned parameters to a JSON file in param_files/.
+
+    Merges the best swept params back into the full preset defaults
+    so the output JSON has all keys (matching ddpg_params.json format).
     """
+
+    # load preset defaults if a param file was used
+    full_params = {}
+    if param_file is not None:
+        with open(param_file) as f:
+            full_params = json.load(f)
+
+    # override with the best swept values
+    full_params.update(study.best_trial.params)
 
     # name the output file
     agent_str = agent_type.lower()
@@ -22,5 +34,5 @@ def save_tuned_params(study: optuna.Study,
     print(f"SAVING TUNED PARAMS TO: {output_path}")
 
     with open(output_path, mode="w", encoding="utf-8") as f:
-        json.dump(study.best_trial.params, f, indent=4)
+        json.dump(full_params, f, indent=4)
         f.write("\n")

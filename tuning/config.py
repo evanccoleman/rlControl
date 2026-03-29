@@ -45,15 +45,21 @@ def read_command(argv) -> Namespace:
                                 for a new agent's hyperparameter settings \
                                 (default None).")
 
+    # seed for reproducibility
+    parser.add_argument("-s", "--seed",
+                        type=int, default=10,
+                        metavar="S", help="Seed for training RNG \
+                                (default 10). Eval seed is seed + 1.")
+
     # options for optimization duration
     parser.add_argument("--num_timesteps",
                         type=int, default=10000,
                         metavar="N", help="Number of timesteps to train for \
                                 in each trial (default 10000).")
     parser.add_argument("--num_trials",
-                        type=int, default=10000,
+                        type=int, default=27,
                         metavar="N", help="Number of trials to optimize \
-                                for (default 10000).")
+                                for (default 27).")
 
     # return the parsed args
     return parser.parse_args()
