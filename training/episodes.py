@@ -6,7 +6,10 @@ import torch
 import numpy as np
 import gymnasium as gym
 
-from agents import turn_off_training_mode, restore_training_mode
+import sys, os
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from agents.factory import turn_off_training_mode, restore_training_mode
 
 def set_seed(seed):
     """

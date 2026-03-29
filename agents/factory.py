@@ -3,14 +3,14 @@
 import numpy as np
 from datetime import datetime as dt
 
-from customddpg import CustomDDPG
-from frameddpg import FrameDDPG
+from agents.customddpg import CustomDDPG
+from agents.frameddpg import FrameDDPG
 
 from stable_baselines3 import PPO, DDPG, SAC, TD3
 from stable_baselines3.common.noise import NormalActionNoise
 from sb3_contrib import RecurrentPPO
 
-from config import read_params_file
+from training.config import read_params_file
 
 def turn_off_training_mode(agent):
     """
@@ -80,34 +80,46 @@ def create_agent(agent_type: str = None,
                         )
 
         elif agent_type == "ddpg":
-            # noise objects for DDPG
-            std = param_settings["action_noise"] # just sigma
-            del param_settings["action_noise"]
-            n_actions = env.action_space.shape[-1]
-            action_noise = NormalActionNoise(mean=np.zeros(n_actions),
-                                             sigma=std*np.ones(n_actions),
-                                             )
-            agent = DDPG("MlpPolicy",
-                         env,
-                         action_noise=action_noise,# noise obj
-                         seed=seed,
-                         **param_settings,
-                         )
+            if "action_noise" in param_settings:
+                std = param_settings["action_noise"] # just sigma
+                del param_settings["action_noise"]
+                n_actions = env.action_space.shape[-1]
+                action_noise = NormalActionNoise(mean=np.zeros(n_actions),
+                                                 sigma=std*np.ones(n_actions),
+                                                 )
+                agent = DDPG("MlpPolicy",
+                             env,
+                             action_noise=action_noise,
+                             seed=seed,
+                             **param_settings,
+                             )
+            else:
+                agent = DDPG("MlpPolicy",
+                             env,
+                             seed=seed,
+                             **param_settings,
+                             )
 
         elif agent_type == "td3":
-            # noise objects for DDPG
-            std = param_settings["action_noise"] # just sigma
-            del param_settings["action_noise"]
-            n_actions = env.action_space.shape[-1]
-            action_noise = NormalActionNoise(mean=np.zeros(n_actions),
-                                             sigma=std*np.ones(n_actions),
-                                             )
-            agent = TD3("MlpPolicy",
-                        env,
-                        action_noise=action_noise, # noise obj
-                        seed=seed,
-                        **param_settings,
-                        )
+            if "action_noise" in param_settings:
+                std = param_settings["action_noise"] # just sigma
+                del param_settings["action_noise"]
+                n_actions = env.action_space.shape[-1]
+                action_noise = NormalActionNoise(mean=np.zeros(n_actions),
+                                                 sigma=std*np.ones(n_actions),
+                                                 )
+                agent = TD3("MlpPolicy",
+                            env,
+                            action_noise=action_noise,
+                            seed=seed,
+                            **param_settings,
+                            )
+            else:
+                agent = TD3("MlpPolicy",
+                            env,
+                            seed=seed,
+                            **param_settings,
+                            )
 
         elif agent_type == "sac":
             agent = SAC("MlpPolicy",
@@ -124,32 +136,42 @@ def create_agent(agent_type: str = None,
                                  )
 
         elif agent_type == "customddpg":
-            # noise objects for DDPG
-            std = param_settings["action_noise"] # just sigma
-            del param_settings["action_noise"]
-            n_actions = env.action_space.shape[-1]
-            action_noise = NormalActionNoise(mean=np.zeros(n_actions),
-                                             sigma=std*np.ones(n_actions),
-                                             )
-            agent = CustomDDPG(env,
-                               action_noise=action_noise, # noise obj
-                               seed=seed,
-                               **param_settings,
-                               )
+            if "action_noise" in param_settings:
+                std = param_settings["action_noise"] # just sigma
+                del param_settings["action_noise"]
+                n_actions = env.action_space.shape[-1]
+                action_noise = NormalActionNoise(mean=np.zeros(n_actions),
+                                                 sigma=std*np.ones(n_actions),
+                                                 )
+                agent = CustomDDPG(env,
+                                   action_noise=action_noise,
+                                   seed=seed,
+                                   **param_settings,
+                                   )
+            else:
+                agent = CustomDDPG(env,
+                                   seed=seed,
+                                   **param_settings,
+                                   )
 
         elif agent_type == "frameddpg":
-            # noise objects for DDPG
-            std = param_settings["action_noise"] # just sigma
-            del param_settings["action_noise"]
-            n_actions = env.action_space.shape[-1]
-            action_noise = NormalActionNoise(mean=np.zeros(n_actions),
-                                             sigma=std*np.ones(n_actions),
-                                             )
-            agent = FrameDDPG(env,
-                              action_noise=action_noise, # noise obj
-                              seed=seed,
-                              **param_settings,
-                              )
+            if "action_noise" in param_settings:
+                std = param_settings["action_noise"] # just sigma
+                del param_settings["action_noise"]
+                n_actions = env.action_space.shape[-1]
+                action_noise = NormalActionNoise(mean=np.zeros(n_actions),
+                                                 sigma=std*np.ones(n_actions),
+                                                 )
+                agent = FrameDDPG(env,
+                                  action_noise=action_noise,
+                                  seed=seed,
+                                  **param_settings,
+                                  )
+            else:
+                agent = FrameDDPG(env,
+                                  seed=seed,
+                                  **param_settings,
+                                  )
 
     return agent
 

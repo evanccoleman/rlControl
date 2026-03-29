@@ -14,7 +14,7 @@ def read_command(argv) -> Namespace:
     """
 
     usage_str = """
-    USAGE: python graphit.py test_two_ppo.json
+    USAGE: python graphit.py -x test_two_ppo.json
     """
 
     parser = argparse.ArgumentParser(usage=usage_str)
@@ -31,11 +31,8 @@ args = read_command(sys.argv[1:])
 # get current directory
 base_dir = os.path.dirname(__file__)
 
-# get config instructions for graphing
-config_path = os.path.join(base_dir,
-                           os.pardir,
-                           'graph_instructions',
-                           args.instructions)
+config_path = os.path.join(base_dir, args.instructions)
+
 with open(config_path) as inFile:
     config = json.load(inFile)
 

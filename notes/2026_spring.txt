@@ -27,23 +27,23 @@ control environments?
 
 ==================================
 
-SUMMARY OF FILES AND DIRECTORIES:
+SUMMARY OF PROJECT DIRECTORIES:
 
-old/ --> old stuff from Aug 2025 
-        old agents,
-        old walker files,
-        old stuff (optuna optimizer, getgraphs.py, old dppg,
-                   agents to be tested, and tuned agents)
+Factories:
+agents/ --> factory to create, save, and load agents
+envs/ --> factory to create envs, POMDP wrapper
 
-notes/ --> personal notes
-
-current/ --> code to work with and run right now 
-
+Training:
+training/ --> run the walkers_v5.py training script
+outputs/ --> eval callbacks, info on runs, and saved agents from training
 param_files/ --> stores hyperparameters to try to train new agents on
 
-outputs/ directory...
-graphs/ --> stores graphs
-runs/{agent}_{env}_{date}/ --> details and avgs an agent-env run
-callbacks/{agent}_{env}_{date}/agent{i}_seed{i} --> from EvalCallback
-checkpoints/{agent}_{env}_{date}/agent{i}_seed{i} --> best model and periodic model saves
+Tuning:
+tuning/ --> run the optimizer.py hyperparameter tuning script
 
+Graphing:
+graphing/ --> run graphit.py to graph agent results
+
+Miscellaneous:
+old/ --> old agents, walker files, optimizer, graph scripts from Aug 2025 
+notes/ --> personal notes

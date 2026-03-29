@@ -2,7 +2,7 @@
 
 import gymnasium as gym
 
-from pomdp_wrapper import POMDPWrapper
+from envs.pomdp_wrapper import POMDPWrapper
 
 def create_env(env_type: str = None,
                quiet: bool = False,

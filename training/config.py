@@ -57,7 +57,7 @@ def read_command(argv) -> Namespace:
                                 (default None).")
     parser.add_argument("-e", "--env_type",
                         type=str, default=None,
-                        help="Which environment to put agent in.")
+                        help="Which environment to put agent in (default None).")
     parser.add_argument("-p", "--pomdp_type",
                         type=str, default=None,
                         help="Specifies POMDP to create (default None). \

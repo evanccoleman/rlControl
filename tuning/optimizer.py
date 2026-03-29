@@ -7,16 +7,26 @@ from stable_baselines3.common.monitor import Monitor
 
 # handle parsing command line args
 import sys
+import os
+
+# add project root to path so shared packages are importable
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # get other classes and custom functions
-from config import read_command
-from trialevalcallback import TrialEvalCallback
-from params_to_sample import sample_ppo_params,\
-                             sample_ddpg_params,\
-                             sample_td3_params,\
-                             sample_sac_params,\
-                             sample_rppo_params
-from write_tuned_output import save_tuned_params
+from tuning.config import read_command
+from tuning.trialevalcallback import TrialEvalCallback
+from tuning.params_to_sample import sample_ppo_params,\
+                                    sample_ddpg_params,\
+                                    sample_td3_params,\
+                                    sample_sac_params,\
+                                    sample_rppo_params
+from tuning.write_tuned_output import save_tuned_params
+
+# agent creation
+from stable_baselines3 import PPO, DDPG, SAC, TD3
+from stable_baselines3.common.noise import NormalActionNoise
+from sb3_contrib import RecurrentPPO
+from agents import CustomDDPG, FrameDDPG
 
 # hyperparameter tuner
 import optuna
@@ -25,7 +35,28 @@ from optuna.samplers import TPESampler
 import torch
 
 # pomdp wrapper
-from pomdp_wrapper import POMDPWrapper
+from envs.pomdp_wrapper import POMDPWrapper
+
+def create_agent(agent_type, **kwargs):
+    """
+    Returns a new agent with the specified kwargs.
+    """
+    if agent_type == "ppo":
+        return PPO(**kwargs)
+    elif agent_type == "ddpg":
+        return DDPG(**kwargs)
+    elif agent_type == "td3":
+        return TD3(**kwargs)
+    elif agent_type == "sac":
+        return SAC(**kwargs)
+    elif agent_type == "rppo":
+        return RecurrentPPO(**kwargs)
+    elif agent_type == "customddpg":
+        return CustomDDPG(**kwargs)
+    elif agent_type == "frameddpg":
+        return FrameDDPG(**kwargs)
+    else:
+        raise Exception(f"Agent {agent_type} is not implemented.")
 
 def objective(trial: optuna.Trial) -> float:
     """

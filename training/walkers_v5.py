@@ -6,19 +6,23 @@ import array
 import numpy as np
 from datetime import datetime as dt
 import sys
-from tqdm import tqdm
 import os
 import shutil
+
+# add project root to path so shared packages are importable
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from tqdm import tqdm
 
 from stable_baselines3.common.callbacks import EvalCallback
 from stable_baselines3.common.logger import configure
 from stable_baselines3.common.monitor import Monitor
 
-from config import read_command
-from agents import create_agent, save_agent
-from environments import create_env
-from episodes import run_many_episodes, set_seed
-from write_output import write_output
+from training.config import read_command
+from agents.factory import create_agent, save_agent
+from envs.environments import create_env
+from training.episodes import run_many_episodes, set_seed
+from training.write_output import write_output
 
 def main() -> None:
     """
