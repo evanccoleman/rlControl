@@ -7,6 +7,7 @@ import optuna
 def save_tuned_params(study: optuna.Study,
                       agent_type: str = None,
                       param_file: str = None,
+                      pomdp_type: str = None,
                       ):
     """
     Saves tuned parameters to a JSON file in param_files/.
@@ -26,10 +27,11 @@ def save_tuned_params(study: optuna.Study,
 
     # name the output file
     agent_str = agent_type.lower()
+    obs_str = "pomdp" if pomdp_type is not None else "mdp"
     output_path = os.path.join(os.path.dirname(__file__),
                                os.pardir,
                                "param_files",
-                               f"tuned_{agent_str}_params.json")
+                               f"tuned_{agent_str}_{obs_str}.json")
 
     print(f"SAVING TUNED PARAMS TO: {output_path}")
 

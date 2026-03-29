@@ -203,7 +203,7 @@ def main():
     print("\n")
 
     # write results to a file
-    save_tuned_params(study, args.agent_type, args.hyperparameters_file)
+    save_tuned_params(study, args.agent_type, args.hyperparameters_file, args.pomdp_type)
 
 if __name__ == "__main__":
     # run the main program

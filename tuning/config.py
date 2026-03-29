@@ -13,11 +13,13 @@ def read_command(argv) -> Namespace:
     # instructions for how to run optimizer.py
     usage_str = """
     USAGE:      python optimizer.py -a {agent} -e {env} <options>
-    EXAMPLES:   (1) python optimizer.py -a ppo -env Ant-v5
-                    - Runs the optimizer on an ant ppo agent
-                      where timesteps per trial is 10000 (default)
-                      and the number of trials to optimize for is
-                      10000 (default).
+    EXAMPLES:   (1) python optimizer.py
+                    -a {agent_type}
+                    -e {env_type}
+                    -f {hyperparameters_file}
+                    -s {seed}
+                    --num_timesteps
+                    --num_trials
     """
 
     # create argument parser
