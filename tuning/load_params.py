@@ -70,24 +70,24 @@ def load_param_settings(agent_type: str = None,
         more_settings.update(sample_rppo_params(trial))
 
     elif agent_type == "customddpg":
-        if "action_noise" in more_settings:
-            sigma = more_settings["action_noise"]
-            del more_settings["action_noise"]
+        sampled = sample_customddpg_params(trial)
+        if "action_noise" in sampled:
+            sigma = sampled["action_noise"]
             n_actions = action_space_shape
-            action_noise = NormalActionNoise(mean=np.zeros(n_actions),
-                                             sigma=sigma*np.ones(n_actions))
-            more_settings["action_noise"] = action_noise
-        more_settings.update(sample_customddpg_params(trial))
+            sampled["action_noise"] = NormalActionNoise(
+                mean=np.zeros(n_actions),
+                sigma=sigma*np.ones(n_actions))
+        more_settings.update(sampled)
 
     elif agent_type == "frameddpg":
-        if "action_noise" in more_settings:
-            sigma = more_settings["action_noise"]
-            del more_settings["action_noise"]
+        sampled = sample_frameddpg_params(trial)
+        if "action_noise" in sampled:
+            sigma = sampled["action_noise"]
             n_actions = action_space_shape
-            action_noise = NormalActionNoise(mean=np.zeros(n_actions),
-                                             sigma=sigma*np.ones(n_actions))
-            more_settings["action_noise"] = action_noise
-        more_settings.update(sample_frameddpg_params(trial))
+            sampled["action_noise"] = NormalActionNoise(
+                mean=np.zeros(n_actions),
+                sigma=sigma*np.ones(n_actions))
+        more_settings.update(sampled)
 
     return more_settings
 
@@ -119,12 +119,12 @@ def sample_ddpg_params(trial: optuna.Trial) -> dict:
                                               search_space["learning_rate"])
     batch_size = trial.suggest_categorical("batch_size",
                                            search_space["batch_size"])
-    tau = trial.suggest_categorical("tau",
-                                    search_space["tau"])
+    action_noise = trial.suggest_categorical("action_noise",
+                                              search_space["action_noise"])
 
     return {"learning_rate": learning_rate,
             "batch_size": batch_size,
-            "tau": tau,
+            "action_noise": action_noise,
             }
 
 def sample_td3_params(trial: optuna.Trial) -> dict:
@@ -135,14 +135,14 @@ def sample_td3_params(trial: optuna.Trial) -> dict:
 
     learning_rate = trial.suggest_categorical("learning_rate",
                                               search_space["learning_rate"])
-    batch_size = trial.suggest_categorical("batch_size",
-                                           search_space["batch_size"])
-    tau = trial.suggest_categorical("tau",
-                                    search_space["tau"])
+    policy_delay = trial.suggest_categorical("policy_delay",
+                                              search_space["policy_delay"])
+    target_policy_noise = trial.suggest_categorical("target_policy_noise",
+                                                     search_space["target_policy_noise"])
 
     return {"learning_rate": learning_rate,
-            "batch_size": batch_size,
-            "tau": tau,
+            "policy_delay": policy_delay,
+            "target_policy_noise": target_policy_noise,
             }
 
 def sample_sac_params(trial: optuna.Trial) -> dict:
@@ -155,12 +155,12 @@ def sample_sac_params(trial: optuna.Trial) -> dict:
                                               search_space["learning_rate"])
     batch_size = trial.suggest_categorical("batch_size",
                                            search_space["batch_size"])
-    tau = trial.suggest_categorical("tau",
-                                    search_space["tau"])
+    ent_coef = trial.suggest_categorical("ent_coef",
+                                          search_space["ent_coef"])
 
     return {"learning_rate": learning_rate,
             "batch_size": batch_size,
-            "tau": tau,
+            "ent_coef": ent_coef,
             }
 
 def sample_rppo_params(trial: optuna.Trial) -> dict:
@@ -173,12 +173,12 @@ def sample_rppo_params(trial: optuna.Trial) -> dict:
                                               search_space["learning_rate"])
     n_steps = trial.suggest_categorical("n_steps",
                                         search_space["n_steps"])
-    clip_range = trial.suggest_categorical("clip_range",
-                                           search_space["clip_range"])
+    policy_kwargs = trial.suggest_categorical("policy_kwargs",
+                                               search_space["policy_kwargs"])
 
     return {"learning_rate": learning_rate,
             "n_steps": n_steps,
-            "clip_range": clip_range,
+            "policy_kwargs": policy_kwargs,
             }
 
 def sample_customddpg_params(trial: optuna.Trial) -> dict:
@@ -191,12 +191,12 @@ def sample_customddpg_params(trial: optuna.Trial) -> dict:
                                               search_space["learning_rate"])
     batch_size = trial.suggest_categorical("batch_size",
                                            search_space["batch_size"])
-    tau = trial.suggest_categorical("tau",
-                                    search_space["tau"])
+    action_noise = trial.suggest_categorical("action_noise",
+                                              search_space["action_noise"])
 
     return {"learning_rate": learning_rate,
             "batch_size": batch_size,
-            "tau": tau,
+            "action_noise": action_noise,
             }
 
 def sample_frameddpg_params(trial: optuna.Trial) -> dict:
@@ -209,10 +209,10 @@ def sample_frameddpg_params(trial: optuna.Trial) -> dict:
                                               search_space["learning_rate"])
     batch_size = trial.suggest_categorical("batch_size",
                                            search_space["batch_size"])
-    stack_size = trial.suggest_categorical("stack_size",
-                                           search_space["stack_size"])
+    action_noise = trial.suggest_categorical("action_noise",
+                                              search_space["action_noise"])
 
     return {"learning_rate": learning_rate,
             "batch_size": batch_size,
-            "stack_size": stack_size,
+            "action_noise": action_noise,
             }
