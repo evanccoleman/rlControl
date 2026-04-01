@@ -11,5 +11,5 @@ outputs/
 # ignore cache
 __pycache__/
 
-# ignore *.slurm
-current/*.slurm
+# ignore slurm scripts
+*slurm*
