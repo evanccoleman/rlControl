@@ -15,7 +15,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # get other classes and custom functions
 from tuning.config import read_command
-from tuning.write_tuned_output import save_tuned_params
+from tuning.write_tuned_output import save_tuned_params, save_details
 from tuning.evaluate_agents import evaluate_agent
 from tuning.load_params import load_param_settings, load_search_space
 
@@ -203,7 +203,13 @@ def main():
     print("\n")
 
     # write results to a file
-    save_tuned_params(study, args.agent_type, args.hyperparameters_file, args.pomdp_type)
+    output_file = save_tuned_params(study, args.agent_type, args.hyperparameters_file, args.pomdp_type)
+
+    # save run details
+    search_space_file = os.path.join(os.path.dirname(__file__),
+                                     "search_spaces",
+                                     f"search_space_{args.agent_type}.json")
+    save_details(args, output_file, search_space_file)
 
 if __name__ == "__main__":
     # run the main program

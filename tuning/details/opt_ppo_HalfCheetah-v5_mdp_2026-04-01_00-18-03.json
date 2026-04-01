@@ -1,0 +1,11 @@
+{
+    "agent_type": "ppo",
+    "env_type": "HalfCheetah-v5",
+    "pomdp_type": null,
+    "hyperparameters_file": "../param_files/ppo_params.json",
+    "seed": 42,
+    "num_timesteps": 10000,
+    "num_trials": 27,
+    "output_file": "/Users/oliviab/CS/rlControl/tuning/../param_files/tuned_ppo_mdp.json",
+    "search_space_file": "/Users/oliviab/CS/rlControl/tuning/search_spaces/search_space_ppo.json"
+}
