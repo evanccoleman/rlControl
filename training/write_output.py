@@ -17,7 +17,7 @@ def write_output(output_filename: str = None,
     """
 
     # create run directory
-    run_dir = f"../outputs/runs/{output_filename}"
+    run_dir = f"../outputs/training_runs/{output_filename}"
     os.makedirs(run_dir, exist_ok=True)
 
     # write run details

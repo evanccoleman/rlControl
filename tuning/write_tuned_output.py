@@ -51,9 +51,14 @@ def save_details(args, output_file: str, search_space_file: str):
     obs_str = "pomdp" if args.pomdp_type is not None else "mdp"
     now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     filename = f"opt_{args.agent_type}_{args.env_type}_{obs_str}_{now}.json"
+    output_path = os.path.join(os.path.dirname(__file__),
+                               os.pardir,
+                               "outputs",
+                               "tuning_runs",
+                               filename,
+                               )
 
-    details_dir = os.path.join(os.path.dirname(__file__), "details")
-    details_path = os.path.join(details_dir, filename)
+
 
     details = {
         "agent_type": args.agent_type,
@@ -69,6 +74,6 @@ def save_details(args, output_file: str, search_space_file: str):
 
     print(f"SAVING RUN DETAILS TO:\n {details_path}")
 
-    with open(details_path, mode="w", encoding="utf-8") as f:
+    with open(output_path, mode="w", encoding="utf-8") as f:
         json.dump(details, f, indent=4)
         f.write("\n")
