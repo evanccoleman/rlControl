@@ -2,7 +2,6 @@
 
 import argparse
 from argparse import Namespace
-import json
 
 def read_command(argv) -> Namespace:
     """
@@ -110,13 +109,3 @@ def read_command(argv) -> Namespace:
 
     # return the parsed arguments
     return parser.parse_args()
-
-def read_params_file(params_file: str = None) -> dict:
-    """
-    Parses hyperparameters settings form a file.
-    """
-
-    with open(params_file) as inFile:
-        param_settings = json.load(inFile)
-
-    return param_settings

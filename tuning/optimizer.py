@@ -20,10 +20,7 @@ from tuning.evaluate_agents import evaluate_agent
 from tuning.load_params import load_param_settings, load_search_space
 
 # agent creation
-from stable_baselines3 import PPO, DDPG, SAC, TD3
-from sb3_contrib import RecurrentPPO
-from agents import CustomDDPG, FrameDDPG
-from training.config import read_params_file
+from agents.factory import create_agent
 
 # hyperparameter tuner
 import optuna
@@ -43,27 +40,6 @@ def set_seed(seed):
     np.random.seed(seed)
     torch.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
-
-def create_agent(agent_type, **kwargs):
-    """
-    Returns a new agent with the specified kwargs.
-    """
-    if agent_type == "ppo":
-        return PPO(**kwargs)
-    elif agent_type == "ddpg":
-        return DDPG(**kwargs)
-    elif agent_type == "td3":
-        return TD3(**kwargs)
-    elif agent_type == "sac":
-        return SAC(**kwargs)
-    elif agent_type == "rppo":
-        return RecurrentPPO(**kwargs)
-    elif agent_type == "customddpg":
-        return CustomDDPG(**kwargs)
-    elif agent_type == "frameddpg":
-        return FrameDDPG(**kwargs)
-    else:
-        raise Exception(f"Agent {agent_type} is not implemented.")
 
 def create_env(env_type: str = None,
                pomdp_type: str = None
@@ -118,18 +94,19 @@ def make_objective(args):
 
         # get parameter settings for an agent
         is_custom = args.agent_type in ("customddpg", "frameddpg")
-        param_settings = {"env": train_env}
-        if not is_custom:
-            param_settings["policy"] = "MlpPolicy"
-        additional_settings = load_param_settings(agent_type=args.agent_type,
-                                                  param_file=args.hyperparameters_file,
-                                                  action_space_shape=train_env.action_space.shape[-1],
-                                                  trial=trial,
-                                                  )
-        param_settings.update(additional_settings)
+        param_settings = load_param_settings(
+            agent_type=args.agent_type,
+            param_file=args.hyperparameters_file,
+            action_space_shape=train_env.action_space.shape[-1],
+            trial=trial,
+        )
 
         # create agent with training seed
-        agent = create_agent(args.agent_type, seed=train_seed, **param_settings)
+        agent = create_agent(args.agent_type,
+                             env=train_env,
+                             param_settings=param_settings,
+                             seed=train_seed,
+                             )
 
         # train and evaluate
         try:
