@@ -57,12 +57,13 @@ def read_command(argv) -> Namespace:
                                 (default None).")
     parser.add_argument("-e", "--env_type",
                         type=str, default=None,
-                        help="Which environment to put agent in (default None).")
+                        metavar="E", help="Which environment to put agent \
+                                in (default None).")
     parser.add_argument("-p", "--pomdp_type",
                         type=str, default=None,
-                        help="Specifies POMDP to create (default None). \
-                                Types include remove_velocity,\
-                                flickering, random_noise, \
+                        metavar="P", help="Specifies POMDP to create \
+                                (default None). Types include \
+                                remove_velocity,flickering, random_noise, \
                                 random_sensor_missing, or some combo \
                                 (refer to POMDPWrapper() constructor \
                                 for more)")
