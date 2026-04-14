@@ -47,7 +47,11 @@ def main() -> None:
 
     # create output filename
     current_datetime = dt.now().strftime("%Y-%m-%d_%H-%M-%S")
-    output_filename = f"{agent_type}_{env_type_short}_{ispomdp}_{current_datetime}"
+    if args.hyperparameters_file and "tuned" in args.hyperparameters_file:
+        tuned_prefix = "tuned_"
+    else:
+        tuned_prefix = ""
+    output_filename = f"{tuned_prefix}{agent_type}_{env_type_short}_{ispomdp}_{current_datetime}"
 
     # randomly generate seeds
     # first half for training, second half for testing
