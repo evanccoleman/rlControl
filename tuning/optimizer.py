@@ -112,10 +112,20 @@ def make_objective(args):
         try:
             if is_custom:
                 # custom agents don't support callbacks,
-                # so train first then evaluate manually
-                agent.learn(total_timesteps=args.num_timesteps)
-                mean_reward = evaluate_agent(agent, eval_env,
-                                             agent_type=args.agent_type)
+                # so train in chunks and evaluate periodically
+                eval_freq = 10000
+                best_mean_reward = -np.inf
+                steps_remaining = args.num_timesteps
+
+                while steps_remaining > 0:
+                    chunk = min(eval_freq, steps_remaining)
+                    agent.learn(total_timesteps=chunk)
+                    reward = evaluate_agent(agent, eval_env,
+                                            agent_type=args.agent_type)
+                    best_mean_reward = max(best_mean_reward, reward)
+                    steps_remaining -= chunk
+
+                mean_reward = best_mean_reward
             else:
                 eval_callback = EvalCallback(eval_env,
                                              eval_freq=10000,
