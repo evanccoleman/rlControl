@@ -37,7 +37,7 @@ def save_tuned_params(study: optuna.Study,
                                "param_files",
                                f"tuned_{agent_str}_{env_str}_{obs_str}_{now}.json")
 
-    print(f"SAVING TUNED PARAMS TO:\n {output_path}")
+    print(f"SAVING TUNED PARAMS TO:\n {output_path} \n")
 
     with open(output_path, mode="w", encoding="utf-8") as f:
         json.dump(full_params, f, indent=4)
@@ -75,7 +75,7 @@ def save_details(args, output_file: str, search_space_file: str):
         "search_space_file": search_space_file,
     }
 
-    print(f"SAVING RUN DETAILS TO:\n {output_path}")
+    print(f"SAVING RUN DETAILS TO:\n {output_path} \n")
 
     with open(output_path, mode="w", encoding="utf-8") as f:
         json.dump(details, f, indent=4)

@@ -62,9 +62,9 @@ def main() -> None:
 
     # note the details of this program run
     details = {"current_datetime": current_datetime,
-               "seeds" : seeds,
-               "train_seeds" : train_seeds,
-               "test_seeds" : test_seeds,
+               "seeds" : list(seeds),
+               "train_seeds" : list(train_seeds),
+               "test_seeds" : list(test_seeds),
                "agent_type" : args.agent_type,
                "load_agent" : args.load_agent,
                "env_type" : args.env_type,
