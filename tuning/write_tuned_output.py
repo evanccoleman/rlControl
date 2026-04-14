@@ -7,6 +7,7 @@ import optuna
 
 def save_tuned_params(study: optuna.Study,
                       agent_type: str = None,
+                      env_type: str = None,
                       param_file: str = None,
                       pomdp_type: str = None,
                       ):
@@ -28,11 +29,13 @@ def save_tuned_params(study: optuna.Study,
 
     # name the output file
     agent_str = agent_type.lower()
+    env_str = env_type.split("-")[0].lower()
     obs_str = "pomdp" if pomdp_type is not None else "mdp"
+    now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     output_path = os.path.join(os.path.dirname(__file__),
                                os.pardir,
                                "param_files",
-                               f"tuned_{agent_str}_{obs_str}.json")
+                               f"tuned_{agent_str}_{env_str}_{obs_str}_{now}.json")
 
     print(f"SAVING TUNED PARAMS TO:\n {output_path}")
 
@@ -50,7 +53,8 @@ def save_details(args, output_file: str, search_space_file: str):
 
     obs_str = "pomdp" if args.pomdp_type is not None else "mdp"
     now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    filename = f"opt_{args.agent_type}_{args.env_type}_{obs_str}_{now}.json"
+    env_str = args.env_type.split("-")[0].lower()
+    filename = f"opt_{args.agent_type}_{env_str}_{obs_str}_{now}.json"
     output_path = os.path.join(os.path.dirname(__file__),
                                os.pardir,
                                "outputs",

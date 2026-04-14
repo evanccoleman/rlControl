@@ -1,5 +1,6 @@
 # write_output.py
 
+import json
 import os
 import numpy as np
 
@@ -21,9 +22,9 @@ def write_output(output_filename: str = None,
     os.makedirs(run_dir, exist_ok=True)
 
     # write run details
-    with open(f"{run_dir}/details.txt", mode="w", encoding="utf-8") as f:
-        for key, value in the_dict.items():
-            f.write(f"{key} : {value}\n")
+    with open(f"{run_dir}/details.json", mode="w", encoding="utf-8") as f:
+        json.dump(the_dict, f, indent=4)
+        f.write("\n")
 
     # write cross-agent averages
     with open(f"{run_dir}/cross_agent_avgs.txt", mode="w", encoding="utf-8") as f:

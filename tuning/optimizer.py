@@ -180,7 +180,7 @@ def main():
     print("\n")
 
     # write results to a file
-    output_file = save_tuned_params(study, args.agent_type, args.hyperparameters_file, args.pomdp_type)
+    output_file = save_tuned_params(study, args.agent_type, args.env_type, args.hyperparameters_file, args.pomdp_type)
 
     # save run details
     search_space_file = os.path.join(os.path.dirname(__file__),
