@@ -72,7 +72,7 @@ def save_details(args, output_file: str, search_space_file: str):
         "search_space_file": search_space_file,
     }
 
-    print(f"SAVING RUN DETAILS TO:\n {details_path}")
+    print(f"SAVING RUN DETAILS TO:\n {output_path}")
 
     with open(output_path, mode="w", encoding="utf-8") as f:
         json.dump(details, f, indent=4)
