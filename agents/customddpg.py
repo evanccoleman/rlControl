@@ -94,7 +94,7 @@ class CustomDDPG:
 
     def __init__(self,
                  env=None,
-                 action_noise=0.1,
+                 action_noise=None,
                  seed: int = None,
                  replay_buffer=None,
                  replay_position=None,
@@ -131,7 +131,7 @@ class CustomDDPG:
             self.replay_buffer.position = replay_position
 
         # other settings
-        self.action_noise = action_noise # just sigma
+        self.action_noise = action_noise 
         self.learning_rate = learning_rate 
         self.gamma = gamma
         self.tau = tau
