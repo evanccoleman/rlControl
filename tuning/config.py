@@ -19,7 +19,6 @@ def read_command(argv) -> Namespace:
                     -f {hyperparameters_file}
                     -s {seed}
                     --num_timesteps
-                    --num_trials
     """
 
     # create argument parser
@@ -59,10 +58,6 @@ def read_command(argv) -> Namespace:
                         type=int, default=10000,
                         metavar="N", help="Number of timesteps to train for \
                                 in each trial (default 10000).")
-    parser.add_argument("--num_trials",
-                        type=int, default=27,
-                        metavar="N", help="Number of trials to optimize \
-                                for (default 27).")
 
     # return the parsed args
     return parser.parse_args(argv)

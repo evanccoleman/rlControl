@@ -67,7 +67,6 @@ def save_details(args, output_file: str, search_space_file: str):
         "hyperparameters_file": args.hyperparameters_file,
         "seed": args.seed,
         "num_timesteps": args.num_timesteps,
-        "num_trials": args.num_trials,
         "output_file": output_file,
         "search_space_file": search_space_file,
     }
