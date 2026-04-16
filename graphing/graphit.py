@@ -37,7 +37,7 @@ with open(config_path) as inFile:
     config = json.load(inFile)
 
 # get runs directories to graph
-runs_dir = os.path.join(base_dir, os.pardir, 'outputs', 'runs')
+runs_dir = os.path.join(base_dir, os.pardir, 'outputs', 'training_runs')
 
 # get output/graphs directory
 graphs_dir = os.path.join(base_dir, os.pardir, 'outputs', 'graphs')
