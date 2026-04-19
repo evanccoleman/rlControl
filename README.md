@@ -17,7 +17,7 @@ pip install -r requirements.txt
 There are several different scripts in this repo, each divided into their own folder. Navigate to the folder with the desired script and run the help command to learn how to use it. Refer to the "Project Layout" section for an overview of scripts and directories. Below is a list of this project's scripts:
 - Training: `python training/walkers_v5.py -h`
 - Tuning: `python tuning/optimizer.py -h`
-- Find Best Agent: `python find_best_agent/find_best_agent.sh`
+- Find Best Agent: `python find_best_agent/find_best_agent.sh -h`
 - Graphing: `python graphing/graphit.py -h`
 
 ## What's Implemented
