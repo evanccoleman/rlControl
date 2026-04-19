@@ -32,7 +32,7 @@ There are several different scripts in this repo, each divided into their own fo
 ### Inputs / Outputs
 - `param_files/` — hyperparameters to try when training new agents
 - `outputs/` — eval callbacks, run info, saved agents from training, and graphs from graphing; not tracked by git because it constantly gets written to
-- `saved_outputs/` - copy of outputs/ as of 4/19/2026, tracked by git
+- `saved_outputs/` - copy of `outputs/` as of 4/19/2026, tracked by git
 - `find_best_agent/` — run the `find_best_agent.sh` script to inspect multiple saves from a single run and determine which save is best
 
 ### Training
