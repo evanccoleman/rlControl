@@ -1,18 +1,18 @@
 # rlControl
 
-Research code investigating whether memory (LSTM) improves reinforcement learning agent performance in continuous control environments and POMDPs.
+This repo is part of a project called "Reinforcement Learning: Does Memory Improve AI's Performance?" This research investigated whether memory (framestacking and LSTM) improve a reinforcement learning agent's performance in continuous contorl environments and POMDPs.
 
 ## Research Questions
 
-1. Does memory (LSTM) improve agent performance in continuous control environments?
-2. Does memory (LSTM) improve agent performance in POMDPs?
+1. Does memory (framestacking and LSTM) improve agent performance in continuous control environments?
+2. Does memory (framestacking and LSTM) improve agent performance in POMDPs?
 
 ## What's Implemented
 
 - Various Stable-Baselines3 agents
 - Gymnasium environments
-- `POMDPWrapper` class
-- `CustomDDPG` and `FrameDDPG` agents
+- Custom `POMDPWrapper` class
+- Custom `CustomDDPG` and `FrameDDPG` agents
 
 ## Setup
 
@@ -35,21 +35,17 @@ pip list --format=freeze > requirements.txt
 ### Inputs / Outputs
 - `param_files/` — hyperparameters to try when training new agents
 - `outputs/` — eval callbacks, run info, saved agents from training, and graphs from graphing
-- `find_best_agent/` — script that inspects multiple saves from a single run and determines which save is best
+- `find_best_agent/` — run the `find_best_agent.sh` script to inspect multiple saves from a single run and determine which save is best
 
 ### Training
-- `training/` — run the `walkers_v5.py` training script
+- `training/` — run the `walkers_v5.py` script to train an agent in one of the Gymnasium walker environments
 
 ### Tuning
-- `tuning/` — run the `optimizer.py` hyperparameter tuning script
+- `tuning/` — run the `optimizer.py` hyperparameter script to tune settings for an agent in a Gymnasium walker environment
 
 ### Graphing
-- `graphing/` — run `graphit.py` to graph agent results
+- `graphing/` — run `graphit.py` to graph agent results according to averages in `outputs/{training/tuning}_runs/`
 
 ### Miscellaneous
-- `old/` — old agents, walker files, optimizer, and graph scripts from Aug 2025
+- `old/` — old agents, walker files, optimizer, and graph scripts from initial research in Aug 2025
 - `notes/` — personal notes
-
-## Notes
-
-- Files pulled from the cluster may have a 1-hour time difference.
