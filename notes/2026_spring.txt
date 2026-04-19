@@ -12,6 +12,7 @@ What is implemented...
 - Various Stable-Baselines3 agents
 - Gymnasium environments
 - POMDPWrapper class
+- CustomDDPG and FrameDDPG agents
 
 Note:
 - files from the cluster may have a 1-hour time difference
@@ -33,11 +34,15 @@ Factories:
 agents/ --> factory to create, save, and load agents
 envs/ --> factory to create envs, POMDP wrapper
 
-Training:
-training/ --> run the walkers_v5.py training script
+Inputs/Outputs:
+param_files/ --> stores hyperparameters to try to train new agents on
 outputs/ --> eval callbacks, info on runs, and saved agents from training
              graphs from graphing
-param_files/ --> stores hyperparameters to try to train new agents on
+find_best_agent/ --> script that looks at multiple saves of the same agent
+             from a single run and determines which save is the best
+
+Training:
+training/ --> run the walkers_v5.py training script
 
 Tuning:
 tuning/ --> run the optimizer.py hyperparameter tuning script
