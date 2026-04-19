@@ -1,0 +1,15 @@
+AGENT TYPE : ddpg
+ENV TYPE : Ant-v5
+*****
+Number of finished trials : 10000
+Value of best trial : 1028.1259552
+*****
+action_noise_sigma : 0.24444456562896427
+learning_rate : 1.0106407580838208e-06
+gamma : 0.8919613020285818
+batch_size : 64
+buffer_size : 95746
+tau : 0.002066514968547386
+learning_starts : 9605
+train_freq : 1
+gradient_steps : 1

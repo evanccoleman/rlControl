@@ -1,0 +1,9 @@
+{
+    "learning_rate": [0.0001, 0.001, 0.01],
+    "n_steps": [3000, 4000, 5000],
+    "policy_kwargs": [
+        {"lstm_hidden_size": 128},
+        {"lstm_hidden_size": 256},
+        {"lstm_hidden_size": 512}
+    ]
+}

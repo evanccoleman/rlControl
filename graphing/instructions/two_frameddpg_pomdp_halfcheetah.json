@@ -1,0 +1,11 @@
+{
+    "title": "Average Rewards in HalfCheetah-v5 (POMDP)",
+    "output_filename": "two_frameddpg_pomdp_halfcheetah.png",
+    "runs": {
+        "Frame DDPG (03-20)": "frameddpg_halfcheetah_pomdp_2026-03-20_00-22-31",
+        "Frame DDPG (03-28)": "frameddpg_halfcheetah_pomdp_2026-03-28_15-44-11"
+    },
+    "step_start": 1000,
+    "step_interval": 1000,
+    "step_max": 1000000
+}

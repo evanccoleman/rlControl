@@ -1,0 +1,16 @@
+{
+    "title": "Average Rewards in HalfCheetah-v5 (POMDP)",
+    "output_filename": "mar21_pomdp_halfcheetah.png",
+    "runs": {
+        "Custom DDPG": "customddpg_halfcheetah_pomdp_2026-02-25_20-43-50",
+        "Frame DDPG (initial)": "frameddpg_halfcheetah_pomdp_2026-03-20_00-22-31",
+        "DDPG": "ddpg_halfcheetah_pomdp_2026-02-26_09-56-02",
+        "TD3": "td3_halfcheetah_pomdp_2026-02-25_15-09-58",
+        "SAC": "sac_halfcheetah_pomdp_2026-02-25_15-09-58",
+        "PPO": "ppo_halfcheetah_pomdp_2026-02-25_15-09-58",
+        "RPPO (initial)": "rppo_halfcheetah_pomdp_2026-02-25_15-09-58"
+    },
+    "step_start": 1000,
+    "step_interval": 1000,
+    "step_max": 1000000
+}

@@ -1,0 +1,37 @@
+{
+    "current_datetime": "2026-03-19_23-45-45",
+    "seeds": [
+        93,
+        43,
+        88,
+        11,
+        67,
+        19,
+        81,
+        66
+    ],
+    "train_seeds": [
+        93,
+        43,
+        88,
+        11
+    ],
+    "test_seeds": [
+        67,
+        19,
+        81,
+        66
+    ],
+    "agent_type": "frameddpg",
+    "load_agent": null,
+    "env_type": "HalfCheetah-v5",
+    "pomdp_type": null,
+    "hyperparameters_file": "../param_files/frameddpg_params.json",
+    "num_agent_env_pairs": 4,
+    "num_train": 1000,
+    "training_interval": 1000,
+    "num_test": 10,
+    "max_steps": 1000000,
+    "quiet": true,
+    "discount": false
+}
