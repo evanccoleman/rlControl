@@ -1,5 +1,0 @@
-{
-    "learning_rate": [0.0001, 0.001, 0.01],
-    "policy_delay": [1, 2, 3],
-    "target_policy_noise": [0.1, 0.2, 0.3]
-}
