@@ -46,7 +46,7 @@ There are several different scripts in this repo, each divided into their own fo
 - `tuning/` — run the `optimizer.py` hyperparameter script to tune settings for an agent in a Gymnasium walker environment
 
 ### Graphing
-- `graphing/` — run `graphit.py` to graph agent results according to averages in `outputs/{training/tuning}_runs/`
+- `graphing/` — run `graphit.py` to graph agent results according to averages in `outputs/training_runs/`
 
 ### Miscellaneous
 - `old/` — old agents, walker files, optimizer, and graph scripts from initial research in Aug 2025
