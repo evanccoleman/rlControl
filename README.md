@@ -18,16 +18,16 @@ There are several different scripts in this repo, each divided into their own fo
 
 ## What's Implemented
 
-- Various Stable-Baselines3 agents
-- Gymnasium environments
+- Stable-Baselines3 agents: DDPG, PPO, RPPO, SAC, TD3
+- Gymnasium environments: Ant-v5, HalfCheetah-v5, and Hopper-v5
 - Custom `POMDPWrapper` class
-- Custom `CustomDDPG` and `FrameDDPG` agents
+- Custom agents: `CustomDDPG` and `FrameDDPG` 
 
 ## Project Layout
 
 ### Factories
-- `agents/` — factory to create, save, and load agents
-- `envs/` — factory to create envs; POMDP wrapper
+- `agents/` — factory to create, save, and load agents; CustomDDPG and FrameDDPG implementations
+- `envs/` — factory to create envs, POMDP wrapper
 
 ### Inputs / Outputs
 - `param_files/` — hyperparameters to try when training new agents
