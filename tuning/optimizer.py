@@ -160,7 +160,13 @@ def main():
 
     # read in the options from the command line
     args = read_command(sys.argv[1:])
-    
+
+    # ensure output directory structure exists
+    project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    os.makedirs(os.path.join(project_root, "outputs", "tuning_runs"),
+                exist_ok=True)
+    os.makedirs(os.path.join(project_root, "param_files"), exist_ok=True)
+
     # load search space and create grid sampler
     search_space = load_search_space(args.agent_type)
     sampler = GridSampler(search_space)

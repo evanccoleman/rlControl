@@ -31,7 +31,7 @@ args = read_command(sys.argv[1:])
 base_dir = os.path.dirname(__file__)
 file_path = os.path.join(base_dir,
                          os.pardir,
-                         'outputs/runs/',
+                         'outputs/training_runs/',
                          args.agent,
                          'each_agent_avgs.txt')
 

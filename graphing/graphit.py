@@ -41,6 +41,7 @@ runs_dir = os.path.join(base_dir, os.pardir, 'outputs', 'training_runs')
 
 # get output/graphs directory
 graphs_dir = os.path.join(base_dir, os.pardir, 'outputs', 'graphs')
+os.makedirs(graphs_dir, exist_ok=True)
 
 # set the steps
 steps = list(range(config["step_start"],

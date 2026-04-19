@@ -53,6 +53,10 @@ def main() -> None:
         tuned_prefix = ""
     output_filename = f"{tuned_prefix}{agent_type}_{env_type_short}_{ispomdp}_{current_datetime}"
 
+    # ensure output directory structure exists
+    for subdir in ("saved_agents", "eval_callbacks", "training_runs"):
+        os.makedirs(f"../outputs/{subdir}", exist_ok=True)
+
     # randomly generate seeds
     # first half for training, second half for testing
     seeds = array.array("i",
