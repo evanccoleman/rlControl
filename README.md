@@ -2,10 +2,19 @@
 
 This repo is part of a project called "Reinforcement Learning: Does Memory Improve AI's Performance?" This research investigated whether memory (framestacking and LSTM) improve a reinforcement learning agent's performance in continuous contorl environments and POMDPs.
 
-## Research Questions
+## Installation 
 
-1. Does memory (framestacking and LSTM) improve agent performance in continuous control environments?
-2. Does memory (framestacking and LSTM) improve agent performance in POMDPs?
+First activate a virtual environment of your choice. This project used conda.
+
+```bash
+git clone https://github.com/evanccoleman/rlControl.git
+cd rlControl
+pip install -r requirements.txt
+```
+
+## Run
+
+There are several different scripts in this repo, each divided into their own folder. Run `python {script.py} -h` to see a list of instructions and refer to the section "Project Layout" for what scripts are available.
 
 ## What's Implemented
 
@@ -13,18 +22,6 @@ This repo is part of a project called "Reinforcement Learning: Does Memory Impro
 - Gymnasium environments
 - Custom `POMDPWrapper` class
 - Custom `CustomDDPG` and `FrameDDPG` agents
-
-## Setup
-
-```bash
-pip install -r requirements.txt
-```
-
-To regenerate the requirements file from the current environment:
-
-```bash
-pip list --format=freeze > requirements.txt
-```
 
 ## Project Layout
 
