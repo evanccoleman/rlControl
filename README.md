@@ -22,7 +22,7 @@ There are several different scripts in this repo, each divided into their own fo
 
 ## What's Implemented
 
-- Stable-Baselines3 agents: DDPG, PPO, RPPO, SAC, TD3
+- Stable-Baselines3 agents: DDPG, PPO, RPPO, SAC, and TD3
 - Gymnasium environments: Ant-v5, HalfCheetah-v5, and Hopper-v5
 - Custom `POMDPWrapper` class
 - Custom agents: `CustomDDPG` and `FrameDDPG` 
