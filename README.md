@@ -14,7 +14,7 @@ pip install -r requirements.txt
 
 ## Run
 
-There are several different scripts in this repo, each divided into their own folder. Run `python {script.py} -h` to see a list of instructions and refer to the section "Project Layout" for what scripts are available.
+There are several different scripts in this repo, each divided into their own folder. Run `python {script.py} -h` to the instructions for a given script and refer to the section "Project Layout" for what scripts are available.
 
 ## What's Implemented
 
