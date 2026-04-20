@@ -3,6 +3,7 @@
 import json
 import os
 import matplotlib.pyplot as plt
+import numpy as np
 import argparse
 import sys
 from argparse import Namespace
@@ -23,6 +24,10 @@ def read_command(argv) -> Namespace:
                         type=str, default=None,
                         metavar="X", help="Name of JSON file to \
                                 load graphing instructions from.")
+
+    parser.add_argument("--std", action="store_true",
+                        help="If set, shade the area within one standard \
+                                deviation of the mean.")
 
     return parser.parse_args(argv)
 
@@ -56,7 +61,19 @@ for label, dirname in config['runs'].items():
     avgs_path = os.path.join(runs_dir, dirname, 'cross_agent_avgs.txt')
     with open(avgs_path) as f:
         values = [float(line.strip()) for line in f if line.strip()]
-    plt.plot(steps[:len(values)], values, label=label)
+
+    n = len(values)
+    x = steps[:n]
+    mean = np.array(values)
+    line, = plt.plot(x, mean, label=label)
+
+    if args.std:
+        each_path = os.path.join(runs_dir, dirname, 'each_agent_avgs.txt')
+        per_agent = np.loadtxt(each_path)
+        stds = np.std(per_agent, axis=0)
+        std = stds[:n]
+        plt.fill_between(x, mean - std, mean + std,
+                         color=line.get_color(), alpha=0.2, linewidth=0)
 
 # format the plot
 plt.title(config['title'])
