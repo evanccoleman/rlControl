@@ -85,4 +85,8 @@ ax.xaxis.set_major_locator(ticker.MaxNLocator(nbins=11, integer=True))
 ax.tick_params(axis='x', rotation=45)
 plt.legend(loc="upper left")
 plt.tight_layout()
-plt.savefig(os.path.join(graphs_dir, config['output_filename']), dpi=150)
+output_filename = config['output_filename']
+if args.std:
+    base, ext = os.path.splitext(output_filename)
+    output_filename = f"{base}_std{ext}"
+plt.savefig(os.path.join(graphs_dir, output_filename), dpi=150)
