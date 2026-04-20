@@ -18,7 +18,7 @@ There are several different scripts in this repo, each divided into their own fo
 - Training: `python training/walkers_v5.py -h`
 - Tuning: `python tuning/optimizer.py -h`
 - Find Best Agent: `python find_best_agent/find_best_agent.sh -h`
-- Graphing: `python graphing/graphit.py -h`
+- Graphing: `python graphing/graphit.py -h` and `python view_eval_callback.py -h`
 
 ## What's Implemented
 
@@ -47,6 +47,7 @@ There are several different scripts in this repo, each divided into their own fo
 
 ### Graphing
 - `graphing/` — run `graphit.py` to graph agent results according to averages in `outputs/training_runs/`
+- `graphing\` - run `view_eval_callback.py` to view an eval callback's data
 
 ### Miscellaneous
 - `old/` — old agents, walker files, optimizer, and graph scripts from initial research in Aug 2025
