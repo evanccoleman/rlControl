@@ -16,6 +16,7 @@ def read_command(argv) -> Namespace:
     usage_str = """
     USAGE:      python walkers_v5.py -a {agent} -e {env} <options>
     NOTE:       POMDP envs should only load POMDP agents.
+                Script saves eval callbacks and agents unconditionally.
 
     EXAMPLES:   (1) Create a new agent.
                     python walkers_v5.py
