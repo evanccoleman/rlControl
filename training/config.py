@@ -31,7 +31,7 @@ def read_command(argv) -> Namespace:
                         -q (quiet)
                 (2) Load an existing agent.
                     python walkers_v5.py
-                        -l {../saved_agents/filename}
+                        -l {../outputs/saved_agents/filename}
                         -e {env_type}
                         -n {num_agent_env_pairs}
                         -i {num_training}

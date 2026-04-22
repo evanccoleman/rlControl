@@ -16,7 +16,7 @@ def read_command(argv) -> Namespace:
     EXAMPLES:   (1) python optimizer.py
                     -a {agent_type}
                     -e {env_type}
-                    -f {hyperparameters_file}
+                    -f {../param_files/hyperparameters_file}
                     -s {seed}
                     --num_timesteps
     """
