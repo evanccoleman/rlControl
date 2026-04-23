@@ -85,6 +85,7 @@ def main() -> None:
                "max_steps" : args.max_steps,
                "quiet" : args.quiet,
                "discount" : args.discount,
+               "no_save" : args.no_save,
                }
 
     # prepare array to hold averages of each agent
@@ -211,7 +212,7 @@ def main() -> None:
                              twod_nparray=all_agent_avgs,
                              )
                 # save agent only if it's the best so far
-                if all_agent_avgs[i][j] > best_score:
+                if (not args.no_save) and all_agent_avgs[i][j] > best_score:
                     # delete old best agent directory if it exists
                     if best_save_path is not None:
                         shutil.rmtree(os.path.dirname(best_save_path),

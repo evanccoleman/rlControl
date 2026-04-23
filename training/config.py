@@ -30,6 +30,7 @@ def read_command(argv) -> Namespace:
                         -p {pomdp_type}
                         -f {../param_files/hyperparameters_file.json}
                         -q (quiet)
+                        --no_save (do not save agent)
                 (2) Load an existing agent.
                     python walkers_v5.py
                         -l {../outputs/saved_agents/filename}
@@ -41,6 +42,7 @@ def read_command(argv) -> Namespace:
                         -m {max_steps}
                         -p {pomdp_type}
                         -q (quiet)
+                        --no_save (do not save agent)
     """
 
     # create the argument parser
@@ -107,6 +109,12 @@ def read_command(argv) -> Namespace:
                         help="Whether to return discounted rewards \
                                 during testing (default False, True \
                                 when option is present).")
+    parser.add_argument("--no_save",
+                        action="store_true",
+                        help="If present, do not save the agent to \
+                                disk during or after training \
+                                (default False, meaning agent is \
+                                saved).")
 
     # return the parsed arguments
     return parser.parse_args()
