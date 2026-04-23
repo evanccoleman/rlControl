@@ -4,6 +4,11 @@ DATE: Spring 2026
 
 OVERVIEW:
 
+This repo is part of a project called "Reinforcement Learning: Does
+Memory Improve AI's Performance?" This research investigated whether
+memory (framestacking and LSTM) improve a reinforcement learning
+agent's performance in continuous control environments and POMDPs.
+
 Get proper packages...
 pip install -r requirements.txt
 
@@ -11,13 +16,15 @@ To regenerate the requirements file from the current environment...
 pip list --format=freeze > requirements.txt
 
 What is implemented...
-- Various Stable-Baselines3 agents
-- Gymnasium environments
+- Stable-Baselines3 agents: DDPG, PPO, RPPO, SAC, and TD3
+- Gymnasium environments: Ant-v5, HalfCheetah-v5, and Hopper-v5
 - Custom POMDPWrapper class
 - Custom CustomDDPG and FrameDDPG agents
 
 Note:
 - files from the cluster may have a 1-hour time difference
+- be sure to navigate to the same directory as the script before
+  running it
 
 ==================================
 
@@ -31,23 +38,41 @@ in POMDPs?
 
 ==================================
 
+SCRIPTS:
+
+Run the help command (-h) on any script to learn how to use it.
+
+- Training: python walkers_v5.py -h
+- Training: python resave_without_buffer.py -h
+- Tuning: python optimizer.py -h
+- Find Best Agent: python find_best_agent.sh -h
+- Graphing: python graphit.py -h and python view_eval_callback.py -h
+
+==================================
+
 SUMMARY OF PROJECT DIRECTORIES:
 
 Factories:
-agents/ --> factory to create, save, and load agents
+agents/ --> factory to create, save, and load agents; CustomDDPG and
+             FrameDDPG implementations
 envs/ --> factory to create envs, POMDP wrapper
 
 Inputs/Outputs:
 param_files/ --> hyperparameters to try when training new agents
 outputs/ --> eval callbacks, run info, saved agents from training,
-             and graphs from graphing
+             and graphs from graphing; not tracked by git because it
+             constantly gets written to
+saved_outputs/ --> copy of outputs/ as of 4/19/2026, tracked by git
 find_best_agent/ --> run the find_best_agent.sh script to inspect
              multiple saves from a single run and determine which
              save is best
 
 Training:
 training/ --> run the walkers_v5.py script to train an agent in one
-             of the Gymnasium walker environments
+             of the Gymnasium walker environments; run the
+             resave_without_buffer.py script to create a save of
+             CustomDDPG or FrameDDPG without the memory-intensive
+             filled replay buffer
 
 Tuning:
 tuning/ --> run the optimizer.py hyperparameter script to tune
@@ -55,7 +80,8 @@ tuning/ --> run the optimizer.py hyperparameter script to tune
 
 Graphing:
 graphing/ --> run graphit.py to graph agent results according to
-             averages in outputs/{training/tuning}_runs/
+             averages in outputs/training_runs/; run
+             view_eval_callback.py to view an eval callback's data
 
 Miscellaneous:
 old/ --> old agents, walker files, optimizer, and graph scripts
