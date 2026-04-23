@@ -1,0 +1,105 @@
+=== customddpg_halfcheetah_mdp_2026-02-25_20-37-11 ===
+Best agent: 0
+Best ver: ver_990.zip
+Best score: 2931.476710146061
+
+=== customddpg_halfcheetah_pomdp_2026-02-25_20-43-50 ===
+Best agent: 1
+Best ver: ver_800.zip
+Best score: 2349.9989867064482
+
+=== ddpg_halfcheetah_mdp_2026-02-23_22-47-35 ===
+Best agent: 2
+Best ver: ver_820.zip
+Best score: 2352.2982772240803
+
+=== ddpg_halfcheetah_pomdp_2026-02-26_09-56-02 ===
+Best agent: 3
+Best ver: ver_790.zip
+Best score: 1103.812154663407
+
+=== frameddpg_halfcheetah_mdp_2026-03-19_23-45-45 ===
+Best agent: 2
+Best ver: ver_980.zip
+Best score: 2193.8832060300733
+
+=== frameddpg_halfcheetah_pomdp_2026-03-20_00-22-31 ===
+Best agent: 1
+Best ver: ver_950.zip
+Best score: 1547.3133043792764
+
+=== frameddpg_halfcheetah_pomdp_2026-03-28_15-44-11 ===
+Best agent: 2
+Best ver: ver_990.zip
+Best score: 1141.2930435479923
+
+=== ppo_halfcheetah_mdp_2026-02-25_15-09-58 ===
+Best agent: 1
+Best ver: ver_860.zip
+Best score: 1533.7011493197597
+
+=== ppo_halfcheetah_pomdp_2026-02-25_15-09-58 ===
+Best agent: 3
+Best ver: ver_770.zip
+Best score: 3032.2323635880375
+
+=== rppo_halfcheetah_mdp_2026-02-25_15-09-58 ===
+Best agent: 1
+Best ver: ver_310.zip
+Best score: 2029.6546658934608
+
+=== rppo_halfcheetah_pomdp_2026-02-07_13-39-05 ===
+Best agent: 0
+Best ver: ver_70.zip
+Best score: 286.6733124775337
+
+=== rppo_halfcheetah_pomdp_2026-02-25_15-09-58 ===
+Best agent: 2
+Best ver: ver_640.zip
+Best score: 1138.750220495554
+
+=== sac_halfcheetah_mdp_2026-02-25_15-09-58 ===
+Best agent: 2
+Best ver: ver_960.zip
+Best score: 1849.8570267687446
+
+=== sac_halfcheetah_pomdp_2026-02-25_15-09-58 ===
+Best agent: 0
+Best ver: ver_270.zip
+Best score: 20.812520823438984
+
+=== td3_halfcheetah_mdp_2026-02-25_15-09-58 ===
+Best agent: 1
+Best ver: ver_980.zip
+Best score: 3486.681542918971
+
+=== td3_halfcheetah_pomdp_2026-02-25_15-09-58 ===
+Best agent: 0
+Best ver: ver_800.zip
+Best score: 2195.1796789971067
+
+=== tuned_ddpg_hopper_mdp_2026-04-14_11-09-05 ===
+Best agent: 0
+Best ver: ver_10.zip
+Best score: 4.42145236199107
+
+=== tuned_frameddpg_halfcheetah_mdp_2026-04-14_10-13-12 ===
+Best agent: 0
+Best ver: ver_920.zip
+Best score: 3563.682213119896
+
+=== tuned_frameddpg_halfcheetah_pomdp_2026-04-14_10-13-12 ===
+Best agent: 0
+Best ver: ver_1000.zip
+Best score: 1736.9124452499714
+
+=== tuned_rppo_halfcheetah_mdp_2026-04-14_10-13-12 ===
+Best agent: 2
+Best ver: ver_20.zip
+Best score: 1405.2039774402701
+
+=== tuned_rppo_halfcheetah_pomdp_2026-04-14_10-13-12 ===
+Best agent: 3
+Best ver: ver_630.zip
+Best score: 1102.0373608025916
+
