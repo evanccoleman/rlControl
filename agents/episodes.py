@@ -5,6 +5,7 @@ import collections
 import torch
 import numpy as np
 import gymnasium as gym
+from tqdm import tqdm
 
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -167,11 +168,14 @@ def run_many_episodes(agent,
                       num_episodes: int = 0,
                       agent_type: str = None,
                       discount: bool = False,
+                      progress: bool = False,
                       ) -> None:
     """
     Executes episodes in testing mode for an agent.
 
-    Returns the average returns from the testing run.
+    Returns the average returns from the testing run. If progress
+    is True, wraps the episode loop in a tqdm progress bar (caller
+    opts in so it does not nest inside walkers_v5.py's outer bar).
     """
 
     # turn off training mode and begin exploitation
@@ -181,8 +185,11 @@ def run_many_episodes(agent,
     # track episodic returns
     rewards = []
 
-    # run the episodes
-    for i in range(1, num_episodes + 1):
+    # run the episodes (optionally with a progress bar)
+    iterator = range(1, num_episodes + 1)
+    if progress:
+        iterator = tqdm(iterator, desc="Evaluating", unit="episode")
+    for i in iterator:
         episode_rewards = 0 # initialize and set this in scope
 
         # decide whether to run LSTM episode

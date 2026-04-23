@@ -44,6 +44,7 @@ Run the help command (-h) on any script to learn how to use it.
 
 - Training: python walkers_v5.py -h
 - Training: python resave_without_buffer.py -h
+- Evaluating: python eval_walkers.py -h
 - Tuning: python optimizer.py -h
 - Find Best Agent: python find_best_agent.sh -h
 - Graphing: python graphit.py -h and python view_eval_callback.py -h
@@ -73,6 +74,12 @@ training/ --> run the walkers_v5.py script to train an agent in one
              resave_without_buffer.py script to create a save of
              CustomDDPG or FrameDDPG without the memory-intensive
              filled replay buffer
+
+Evaluating:
+evaluating/ --> run the eval_walkers.py script to load a saved agent
+             and run it for a specified number of episodes,
+             optionally saving mp4 videos of each episode to
+             outputs/videos/
 
 Tuning:
 tuning/ --> run the optimizer.py hyperparameter script to tune

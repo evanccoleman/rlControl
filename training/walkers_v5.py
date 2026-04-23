@@ -22,8 +22,8 @@ from stable_baselines3.common.monitor import Monitor
 
 from training.config import read_command
 from agents.factory import create_agent, save_agent
+from agents.episodes import run_many_episodes, set_seed
 from envs.environments import create_env
-from training.episodes import run_many_episodes, set_seed
 from training.write_output import write_output
 
 def main() -> None:
