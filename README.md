@@ -15,10 +15,11 @@ pip install -r requirements.txt
 ## Run
 
 There are several different scripts in this repo. Be sure to navigate to the same directory as the script before running it. Run the help command to learn how to use it. Refer to the "Project Layout" section for an overview of scripts and directories. Below is a list of this project's scripts:
-- Training: `python training/walkers_v5.py -h`
-- Tuning: `python tuning/optimizer.py -h`
-- Find Best Agent: `python find_best_agent/find_best_agent.sh -h`
-- Graphing: `python graphing/graphit.py -h` and `python view_eval_callback.py -h`
+- Training: `python walkers_v5.py -h`
+- Training: `python resave_without_buffer.py -h`
+- Tuning: `python optimizer.py -h`
+- Find Best Agent: `python find_best_agent.sh -h`
+- Graphing: `python graphit.py -h` and `python view_eval_callback.py -h`
 
 ## What's Implemented
 
@@ -40,7 +41,7 @@ There are several different scripts in this repo. Be sure to navigate to the sam
 - `find_best_agent/` — run the `find_best_agent.sh` script to inspect multiple saves from a single run and determine which save is best
 
 ### Training
-- `training/` — run the `walkers_v5.py` script to train an agent in one of the Gymnasium walker environments
+- `training/` — run the `walkers_v5.py` script to train an agent in one of the Gymnasium walker environments, run the `resave_without_buffer.py` script to create a save of CustomDDPG or FrameDDPG without the memory-intensive filled replay buffer
 
 ### Tuning
 - `tuning/` — run the `optimizer.py` hyperparameter script to tune settings for an agent in a Gymnasium walker environment
