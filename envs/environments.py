@@ -7,36 +7,43 @@ from envs.pomdp_wrapper import POMDPWrapper
 def create_env(env_type: str = None,
                quiet: bool = False,
                pomdp_type: str = None,
+               render_mode: str = None,
+               trackbodyid: int = None,
                ):
     """
     Creates a Gymnasium environment.
 
     Can make the environment partially observable
     using the POMDPWrapper class.
+
+    If render_mode is None, it is derived from quiet
+    (quiet=True -> None, quiet=False -> "human"). Pass
+    render_mode explicitly (e.g. "rgb_array") to override.
+
+    If trackbodyid is provided, the underlying MuJoCo env is
+    created with a tracking camera following that body.
     """
 
-    # make pomdp env
-    if pomdp_type != None:
-        if quiet:
-            env = POMDPWrapper(env_type,
-                               pomdp_type=pomdp_type,
-                               render_mode=None,
-                               )
-        else:
-            env = POMDPWrapper(env_type,
-                               pomdp_type=pomdp_type,
-                               render_mode="human",
-                               )
-    # make mdp env
+    # derive render_mode from quiet if not explicitly provided
+    if render_mode is None:
+        render_mode = "human" if not quiet else None
+
+    env_kwargs = {"render_mode": render_mode}
+
+    # attach tracking camera if a body id was provided
+    # (type 1 = mjCAMERA_TRACKING)
+    if trackbodyid is not None:
+        env_kwargs["default_camera_config"] = {
+            "type": 1,
+            "trackbodyid": trackbodyid,
+            "distance": 4.0,
+        }
+
+    # make pomdp or mdp env
+    if pomdp_type is not None:
+        env = POMDPWrapper(env_type, pomdp_type=pomdp_type, **env_kwargs)
     else:
-        if quiet:
-            env = gym.make(env_type,
-                           render_mode=None,
-                           )
-        else:
-            env = gym.make(env_type,
-                           render_mode="human",
-                           )
+        env = gym.make(env_type, **env_kwargs)
 
     # track non-discounted returns automatically
     env = gym.wrappers.RecordEpisodeStatistics(env)

@@ -30,6 +30,8 @@ def read_command(argv) -> Namespace:
                         -p {pomdp_type}
                         -f {../param_files/hyperparameters_file.json}
                         -q (quiet)
+                        -v (save video of eval episodes)
+                        --trackbodyid {body id for tracking camera}
                         --no_save (do not save agent)
                 (2) Load an existing agent.
                     python walkers_v5.py
@@ -42,6 +44,8 @@ def read_command(argv) -> Namespace:
                         -m {max_steps}
                         -p {pomdp_type}
                         -q (quiet)
+                        -v (save video of eval episodes)
+                        --trackbodyid {body id for tracking camera}
                         --no_save (do not save agent)
     """
 
@@ -115,6 +119,18 @@ def read_command(argv) -> Namespace:
                                 disk during or after training \
                                 (default False, meaning agent is \
                                 saved).")
+    parser.add_argument("-v", "--save_video",
+                        action="store_true",
+                        help="If present, record mp4 videos of \
+                                evaluation episodes to \
+                                ../outputs/videos/ (default False). \
+                                Requires the moviepy package.")
+    parser.add_argument("--trackbodyid",
+                        type=int, default=1,
+                        metavar="T", help="Body id for the tracking \
+                                camera used when saving videos \
+                                (default 1, which is typically the \
+                                torso in MuJoCo walker envs).")
 
     # return the parsed arguments
     return parser.parse_args()

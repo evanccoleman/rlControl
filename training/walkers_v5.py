@@ -14,6 +14,8 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from tqdm import tqdm
 
+import gymnasium as gym
+
 from stable_baselines3.common.callbacks import EvalCallback
 from stable_baselines3.common.logger import configure
 from stable_baselines3.common.monitor import Monitor
@@ -54,7 +56,7 @@ def main() -> None:
     output_filename = f"{tuned_prefix}{agent_type}_{env_type_short}_{ispomdp}_{current_datetime}"
 
     # ensure output directory structure exists
-    for subdir in ("saved_agents", "eval_callbacks", "training_runs"):
+    for subdir in ("saved_agents", "eval_callbacks", "training_runs", "videos"):
         os.makedirs(f"../outputs/{subdir}", exist_ok=True)
 
     # randomly generate seeds
@@ -86,6 +88,8 @@ def main() -> None:
                "quiet" : args.quiet,
                "discount" : args.discount,
                "no_save" : args.no_save,
+               "save_video" : args.save_video,
+               "trackbodyid" : args.trackbodyid,
                }
 
     # prepare array to hold averages of each agent
@@ -151,6 +155,26 @@ def main() -> None:
                                      verbose=0
                                      )
 
+        # if saving videos, build a dedicated offscreen env for testing.
+        # tracks its own RNG state so training on env is undisturbed.
+        if args.save_video:
+            video_dir = (f"../outputs/videos/"
+                         f"{output_filename}/"
+                         f"agent{i}_seed{seeds[i]}")
+            test_env = create_env(env_type=args.env_type,
+                                  pomdp_type=args.pomdp_type,
+                                  render_mode="rgb_array",
+                                  trackbodyid=args.trackbodyid,
+                                  )
+            test_env = gym.wrappers.RecordVideo(
+                test_env,
+                video_folder=video_dir,
+                episode_trigger=lambda episode_id: True,
+                disable_logger=True,
+            )
+        else:
+            test_env = env
+
         # first round of training
         # already reset env after creation
         if agent_type == "customddpg" or agent_type == "frameddpg":
@@ -161,16 +185,16 @@ def main() -> None:
         training_rng_state = env.np_random.bit_generator.state
 
         # first round of testing
-        env.reset(seed=seeds[i + len(seeds) // 2])
+        test_env.reset(seed=seeds[i + len(seeds) // 2])
         ep_eval_avg = run_many_episodes(agent,
-                                        env,
+                                        test_env,
                                         num_episodes=args.num_test,
                                         agent_type=agent_type,
                                         discount=args.discount,
                                         )
         j = 0
         all_agent_avgs[i][j] = ep_eval_avg
-        testing_rng_state = env.np_random.bit_generator.state
+        testing_rng_state = test_env.np_random.bit_generator.state
 
         # continue to alternate between training and testing
         for j in tqdm(range(1, len(all_agent_avgs[i])),
@@ -191,16 +215,16 @@ def main() -> None:
             training_rng_state = env.np_random.bit_generator.state
 
             # round of testing
-            env.np_random.bit_generator.state = testing_rng_state
+            test_env.np_random.bit_generator.state = testing_rng_state
             # run_many_episodes() handles resetting
             ep_eval_avg = run_many_episodes(agent,
-                                            env,
+                                            test_env,
                                             num_episodes=args.num_test,
                                             agent_type=agent_type,
                                             discount=args.discount,
                                             )
             all_agent_avgs[i][j] = ep_eval_avg
-            testing_rng_state = env.np_random.bit_generator.state
+            testing_rng_state = test_env.np_random.bit_generator.state
 
             # periodically save rewards and best agent (every 10 training intervals)
             if (j + 1) % 10 == 0:
@@ -224,6 +248,8 @@ def main() -> None:
 
         # close envs
         eval_env.close()
+        if args.save_video:
+            test_env.close()
         env.close()
 
     # last call to write to output file
