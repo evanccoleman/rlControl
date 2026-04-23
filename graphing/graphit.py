@@ -57,6 +57,7 @@ steps = list(range(config["step_start"],
 plt.figure(figsize=(10, 6))
 
 # fill the plot with cross agent avgs
+colors = config.get('colors', {})
 for label, dirname in config['runs'].items():
     avgs_path = os.path.join(runs_dir, dirname, 'cross_agent_avgs.txt')
     with open(avgs_path) as f:
@@ -65,7 +66,10 @@ for label, dirname in config['runs'].items():
     n = len(values)
     x = steps[:n]
     mean = np.array(values)
-    line, = plt.plot(x, mean, label=label)
+    plot_kwargs = {'label': label}
+    if label in colors:
+        plot_kwargs['color'] = colors[label]
+    line, = plt.plot(x, mean, **plot_kwargs)
 
     if args.std:
         each_path = os.path.join(runs_dir, dirname, 'each_agent_avgs.txt')

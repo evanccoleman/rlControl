@@ -10,6 +10,15 @@
         "PPO": "ppo_halfcheetah_pomdp_2026-02-25_15-09-58",
         "RPPO (initial)": "rppo_halfcheetah_pomdp_2026-02-25_15-09-58"
     },
+    "colors": {
+        "CustomDDPG": "blue",
+        "FrameDDPG (initial)": "orange",
+        "DDPG": "green",
+        "TD3": "red",
+        "SAC": "purple",
+        "PPO": "black",
+        "RPPO (initial)": "magenta"
+    },
     "step_start": 1000,
     "step_interval": 1000,
     "step_max": 1000000

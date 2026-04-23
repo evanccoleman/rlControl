@@ -7,6 +7,12 @@
         "RPPO (initial)": "rppo_halfcheetah_pomdp_2026-02-25_15-09-58",
         "RPPO (tuned)": "tuned_rppo_halfcheetah_pomdp_2026-04-14_10-13-12"
     },
+    "colors": {
+        "FrameDDPG (initial)": "orange",
+        "FrameDDPG (tuned)": "teal",
+        "RPPO (initial)": "magenta",
+        "RPPO (tuned)": "olive"
+    },
     "step_start": 1000,
     "step_interval": 1000,
     "step_max": 1000000
