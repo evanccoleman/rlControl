@@ -109,7 +109,7 @@ class FrameDDPG:
                  timesteps_counter: int = 0,
                  ):
         """
-        Create a CustomDDPG agent.
+        Create a FrameDDPG agent that implements frame stacking.
 
         Learning rate is same for all actor and critic networks.
 
