@@ -1,0 +1,16 @@
+current_datetime : 2026-03-28_21-03-47
+seeds : array('i', [63, 94, 10, 44])
+train_seeds : array('i', [63, 94])
+test_seeds : array('i', [10, 44])
+agent_type : ddpg
+load_agent : None
+env_type : Hopper-v5
+pomdp_type : None
+hyperparameters_file : None
+num_agent_env_pairs : 2
+num_train : 1000
+training_interval : 1000
+num_test : 10
+max_steps : 11000
+quiet : False
+discount : False

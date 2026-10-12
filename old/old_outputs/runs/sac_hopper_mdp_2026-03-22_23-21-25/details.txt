@@ -1,0 +1,16 @@
+current_datetime : 2026-03-22_23-21-25
+seeds : array('i', [4, 49, 44, 86])
+train_seeds : array('i', [4, 49])
+test_seeds : array('i', [44, 86])
+agent_type : sac
+load_agent : None
+env_type : Hopper-v5
+pomdp_type : None
+hyperparameters_file : param_files/sac_params.json
+num_agent_env_pairs : 2
+num_train : 1000
+training_interval : 1000
+num_test : 10
+max_steps : 11000
+quiet : True
+discount : False

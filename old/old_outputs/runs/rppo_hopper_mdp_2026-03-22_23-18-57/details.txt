@@ -1,0 +1,16 @@
+current_datetime : 2026-03-22_23-18-57
+seeds : array('i', [37, 19, 22, 67])
+train_seeds : array('i', [37, 19])
+test_seeds : array('i', [22, 67])
+agent_type : rppo
+load_agent : None
+env_type : Hopper-v5
+pomdp_type : None
+hyperparameters_file : param_files/rppo_params.json
+num_agent_env_pairs : 2
+num_train : 1000
+training_interval : 1000
+num_test : 10
+max_steps : 11000
+quiet : True
+discount : False
